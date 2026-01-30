@@ -1,8 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Shield, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
@@ -62,7 +65,12 @@ const HeroSection = () => {
               Send a Parcel
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
-            <Button variant="heroOutline" size="xl" className="group">
+            <Button 
+              variant="heroOutline" 
+              size="xl" 
+              className="group"
+              onClick={() => navigate("/dashboard/traveler")}
+            >
               <MapPin className="w-5 h-5" />
               Become a Saarthi
             </Button>
