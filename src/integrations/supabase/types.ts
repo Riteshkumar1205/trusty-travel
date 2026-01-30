@@ -14,13 +14,337 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      deliveries: {
+        Row: {
+          agreed_price: number
+          created_at: string
+          delivered_at: string | null
+          delivery_otp: string | null
+          id: string
+          journey_id: string
+          parcel_id: string
+          pickup_at: string | null
+          pickup_otp: string | null
+          sender_id: string
+          sender_rating: number | null
+          status: string | null
+          traveler_id: string
+          traveler_rating: number | null
+          updated_at: string
+        }
+        Insert: {
+          agreed_price: number
+          created_at?: string
+          delivered_at?: string | null
+          delivery_otp?: string | null
+          id?: string
+          journey_id: string
+          parcel_id: string
+          pickup_at?: string | null
+          pickup_otp?: string | null
+          sender_id: string
+          sender_rating?: number | null
+          status?: string | null
+          traveler_id: string
+          traveler_rating?: number | null
+          updated_at?: string
+        }
+        Update: {
+          agreed_price?: number
+          created_at?: string
+          delivered_at?: string | null
+          delivery_otp?: string | null
+          id?: string
+          journey_id?: string
+          parcel_id?: string
+          pickup_at?: string | null
+          pickup_otp?: string | null
+          sender_id?: string
+          sender_rating?: number | null
+          status?: string | null
+          traveler_id?: string
+          traveler_rating?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "journeys"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "deliveries_traveler_id_fkey"
+            columns: ["traveler_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      delivery_tracking: {
+        Row: {
+          accuracy: number | null
+          delivery_id: string
+          heading: number | null
+          id: string
+          latitude: number
+          longitude: number
+          recorded_at: string
+          speed: number | null
+        }
+        Insert: {
+          accuracy?: number | null
+          delivery_id: string
+          heading?: number | null
+          id?: string
+          latitude: number
+          longitude: number
+          recorded_at?: string
+          speed?: number | null
+        }
+        Update: {
+          accuracy?: number | null
+          delivery_id?: string
+          heading?: number | null
+          id?: string
+          latitude?: number
+          longitude?: number
+          recorded_at?: string
+          speed?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_tracking_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "deliveries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journeys: {
+        Row: {
+          arrival_date: string
+          arrival_time: string
+          available_capacity: number
+          created_at: string
+          current_lat: number | null
+          current_lng: number | null
+          departure_date: string
+          departure_time: string
+          destination_city: string
+          destination_location: string
+          id: string
+          pnr_number: string | null
+          price_per_kg: number
+          source_city: string
+          source_location: string
+          status: string | null
+          total_capacity: number
+          transport_mode: string
+          updated_at: string
+          user_id: string
+          vehicle_number: string | null
+        }
+        Insert: {
+          arrival_date: string
+          arrival_time: string
+          available_capacity: number
+          created_at?: string
+          current_lat?: number | null
+          current_lng?: number | null
+          departure_date: string
+          departure_time: string
+          destination_city: string
+          destination_location: string
+          id?: string
+          pnr_number?: string | null
+          price_per_kg: number
+          source_city: string
+          source_location: string
+          status?: string | null
+          total_capacity: number
+          transport_mode: string
+          updated_at?: string
+          user_id: string
+          vehicle_number?: string | null
+        }
+        Update: {
+          arrival_date?: string
+          arrival_time?: string
+          available_capacity?: number
+          created_at?: string
+          current_lat?: number | null
+          current_lng?: number | null
+          departure_date?: string
+          departure_time?: string
+          destination_city?: string
+          destination_location?: string
+          id?: string
+          pnr_number?: string | null
+          price_per_kg?: number
+          source_city?: string
+          source_location?: string
+          status?: string | null
+          total_capacity?: number
+          transport_mode?: string
+          updated_at?: string
+          user_id?: string
+          vehicle_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journeys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      parcels: {
+        Row: {
+          budget: number | null
+          category: string | null
+          created_at: string
+          description: string | null
+          dimensions: string | null
+          drop_city: string
+          drop_contact: string
+          drop_location: string
+          id: string
+          pickup_city: string
+          pickup_contact: string
+          pickup_location: string
+          preferred_modes: string[] | null
+          status: string | null
+          title: string
+          updated_at: string
+          urgency: string | null
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          budget?: number | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          dimensions?: string | null
+          drop_city: string
+          drop_contact: string
+          drop_location: string
+          id?: string
+          pickup_city: string
+          pickup_contact: string
+          pickup_location: string
+          preferred_modes?: string[] | null
+          status?: string | null
+          title: string
+          updated_at?: string
+          urgency?: string | null
+          user_id: string
+          weight: number
+        }
+        Update: {
+          budget?: number | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          dimensions?: string | null
+          drop_city?: string
+          drop_contact?: string
+          drop_location?: string
+          id?: string
+          pickup_city?: string
+          pickup_contact?: string
+          pickup_location?: string
+          preferred_modes?: string[] | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+          urgency?: string | null
+          user_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcels_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          phone: string | null
+          successful_deliveries: number | null
+          total_deliveries: number | null
+          trust_score: number | null
+          updated_at: string
+          user_id: string
+          verification_status: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          successful_deliveries?: number | null
+          total_deliveries?: number | null
+          trust_score?: number | null
+          updated_at?: string
+          user_id: string
+          verification_status?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          phone?: string | null
+          successful_deliveries?: number | null
+          total_deliveries?: number | null
+          trust_score?: number | null
+          updated_at?: string
+          user_id?: string
+          verification_status?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_delivery_participant: {
+        Args: { delivery_id: string }
+        Returns: boolean
+      }
+      is_journey_owner: { Args: { journey_id: string }; Returns: boolean }
+      is_parcel_owner: { Args: { parcel_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never

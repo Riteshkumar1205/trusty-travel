@@ -61,7 +61,12 @@ const HeroSection = () => {
             className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16 animate-fade-in" 
             style={{ animationDelay: "300ms" }}
           >
-            <Button variant="hero" size="xl" className="group">
+            <Button 
+              variant="hero" 
+              size="xl" 
+              className="group"
+              onClick={() => navigate("/dashboard/sender")}
+            >
               Send a Parcel
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Button>
