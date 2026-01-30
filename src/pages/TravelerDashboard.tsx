@@ -11,7 +11,8 @@ import {
   X,
   Home,
   User,
-  Shield
+  Shield,
+  MapPinned
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -23,10 +24,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/contexts/LanguageContext";
 import TravelerStats from "@/components/dashboard/TravelerStats";
 import JourneyPostForm from "@/components/dashboard/JourneyPostForm";
 import ActiveJourneys, { Journey } from "@/components/dashboard/ActiveJourneys";
 import ParcelManagement, { Parcel } from "@/components/dashboard/ParcelManagement";
+import LiveTrackingMap from "@/components/dashboard/LiveTrackingMap";
+import LanguageSelector from "@/components/LanguageSelector";
 
 // Mock data
 const mockStats = {
@@ -124,6 +128,7 @@ const mockParcels: Parcel[] = [
 
 const TravelerDashboard = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("overview");
   const [showPostForm, setShowPostForm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -131,7 +136,6 @@ const TravelerDashboard = () => {
   const handleJourneySubmit = (data: any) => {
     console.log("Journey posted:", data);
     setShowPostForm(false);
-    // In real app, would call API
   };
 
   const handleViewDetails = (id: string) => {
@@ -179,7 +183,7 @@ const TravelerDashboard = () => {
                 onClick={() => setActiveTab("overview")}
               >
                 <Home className="w-4 h-4 mr-2" />
-                Overview
+                {t("nav.overview")}
               </Button>
               <Button 
                 variant={activeTab === "journeys" ? "secondary" : "ghost"} 
@@ -187,7 +191,7 @@ const TravelerDashboard = () => {
                 onClick={() => setActiveTab("journeys")}
               >
                 <Route className="w-4 h-4 mr-2" />
-                My Journeys
+                {t("nav.journeys")}
               </Button>
               <Button 
                 variant={activeTab === "parcels" ? "secondary" : "ghost"} 
@@ -195,15 +199,25 @@ const TravelerDashboard = () => {
                 onClick={() => setActiveTab("parcels")}
               >
                 <Package className="w-4 h-4 mr-2" />
-                Parcels
+                {t("nav.parcels")}
+              </Button>
+              <Button 
+                variant={activeTab === "tracking" ? "secondary" : "ghost"} 
+                size="sm"
+                onClick={() => setActiveTab("tracking")}
+              >
+                <MapPinned className="w-4 h-4 mr-2" />
+                {t("tracking.liveLocation")}
               </Button>
             </div>
 
             {/* Right Actions */}
             <div className="flex items-center gap-3">
+              <LanguageSelector />
+              
               <Button variant="hero" size="sm" onClick={() => setShowPostForm(true)}>
                 <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Post Journey</span>
+                <span className="hidden sm:inline">{t("nav.postJourney")}</span>
               </Button>
 
               <Button variant="ghost" size="icon" className="relative">
@@ -228,21 +242,21 @@ const TravelerDashboard = () => {
                     <div className="font-medium">Arjun Mehta</div>
                     <div className="text-xs text-muted-foreground flex items-center gap-1">
                       <Shield className="w-3 h-3 text-primary" />
-                      Verified Saarthi
+                      {t("dashboard.verifiedSaarthi")}
                     </div>
                   </div>
                   <DropdownMenuItem>
                     <User className="w-4 h-4 mr-2" />
-                    Profile
+                    {t("nav.profile")}
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Settings className="w-4 h-4 mr-2" />
-                    Settings
+                    {t("nav.settings")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="text-destructive">
                     <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
+                    {t("nav.signOut")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -269,7 +283,7 @@ const TravelerDashboard = () => {
                   onClick={() => { setActiveTab("overview"); setMobileMenuOpen(false); }}
                 >
                   <Home className="w-4 h-4 mr-2" />
-                  Overview
+                  {t("nav.overview")}
                 </Button>
                 <Button 
                   variant={activeTab === "journeys" ? "secondary" : "ghost"} 
@@ -277,7 +291,7 @@ const TravelerDashboard = () => {
                   onClick={() => { setActiveTab("journeys"); setMobileMenuOpen(false); }}
                 >
                   <Route className="w-4 h-4 mr-2" />
-                  My Journeys
+                  {t("nav.journeys")}
                 </Button>
                 <Button 
                   variant={activeTab === "parcels" ? "secondary" : "ghost"} 
@@ -285,7 +299,15 @@ const TravelerDashboard = () => {
                   onClick={() => { setActiveTab("parcels"); setMobileMenuOpen(false); }}
                 >
                   <Package className="w-4 h-4 mr-2" />
-                  Parcels
+                  {t("nav.parcels")}
+                </Button>
+                <Button 
+                  variant={activeTab === "tracking" ? "secondary" : "ghost"} 
+                  className="justify-start"
+                  onClick={() => { setActiveTab("tracking"); setMobileMenuOpen(false); }}
+                >
+                  <MapPinned className="w-4 h-4 mr-2" />
+                  {t("tracking.liveLocation")}
                 </Button>
               </div>
             </div>
@@ -301,7 +323,7 @@ const TravelerDashboard = () => {
             <div className="card-premium p-6">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground">Post Your Journey</h2>
+                  <h2 className="text-xl font-semibold text-foreground">{t("nav.postJourney")}</h2>
                   <p className="text-sm text-muted-foreground">
                     Share your travel plans and earn by carrying parcels
                   </p>
@@ -321,21 +343,36 @@ const TravelerDashboard = () => {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="journeys">Journeys</TabsTrigger>
             <TabsTrigger value="parcels">Parcels</TabsTrigger>
+            <TabsTrigger value="tracking">Tracking</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-8">
             {/* Stats */}
             <section>
-              <h2 className="text-lg font-semibold text-foreground mb-4">Your Stats</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-4">{t("dashboard.yourStats")}</h2>
               <TravelerStats stats={mockStats} />
+            </section>
+
+            {/* Live Tracking Preview */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-foreground">{t("tracking.liveLocation")}</h2>
+                <Button variant="ghost" size="sm" onClick={() => setActiveTab("tracking")}>
+                  {t("dashboard.viewAll")}
+                </Button>
+              </div>
+              <LiveTrackingMap 
+                partnerLocation={{ lat: 28.5, lng: 77.1 }}
+                destinationLocation={{ lat: 25.6, lng: 85.1 }}
+              />
             </section>
 
             {/* Recent Journeys */}
             <section>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-foreground">Active Journeys</h2>
+                <h2 className="text-lg font-semibold text-foreground">{t("dashboard.activeJourneys")}</h2>
                 <Button variant="ghost" size="sm" onClick={() => setActiveTab("journeys")}>
-                  View All
+                  {t("dashboard.viewAll")}
                 </Button>
               </div>
               <ActiveJourneys 
@@ -348,9 +385,9 @@ const TravelerDashboard = () => {
             {/* Pending Parcels */}
             <section>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-foreground">Pending Actions</h2>
+                <h2 className="text-lg font-semibold text-foreground">{t("dashboard.pendingActions")}</h2>
                 <Button variant="ghost" size="sm" onClick={() => setActiveTab("parcels")}>
-                  View All
+                  {t("dashboard.viewAll")}
                 </Button>
               </div>
               <ParcelManagement 
@@ -365,7 +402,7 @@ const TravelerDashboard = () => {
           <TabsContent value="journeys" className="space-y-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-foreground">My Journeys</h2>
+                <h2 className="text-xl font-semibold text-foreground">{t("nav.journeys")}</h2>
                 <p className="text-sm text-muted-foreground">
                   Manage your posted journeys and track parcels
                 </p>
@@ -384,7 +421,7 @@ const TravelerDashboard = () => {
 
           <TabsContent value="parcels" className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold text-foreground">Parcel Management</h2>
+              <h2 className="text-xl font-semibold text-foreground">{t("nav.parcels")}</h2>
               <p className="text-sm text-muted-foreground">
                 View and manage all parcels assigned to your journeys
               </p>
@@ -396,13 +433,27 @@ const TravelerDashboard = () => {
               onMessageSender={handleMessageSender}
             />
           </TabsContent>
+
+          <TabsContent value="tracking" className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">{t("tracking.liveLocation")}</h2>
+              <p className="text-sm text-muted-foreground">
+                Real-time GPS tracking for your active journey
+              </p>
+            </div>
+            <LiveTrackingMap 
+              partnerLocation={{ lat: 28.5, lng: 77.1 }}
+              destinationLocation={{ lat: 25.6, lng: 85.1 }}
+              isLive={true}
+            />
+          </TabsContent>
         </Tabs>
       </main>
 
       {/* Footer Note */}
       <footer className="container-wide py-6 border-t border-border/50">
         <p className="text-center text-xs text-muted-foreground italic">
-          "You're not delivering a parcel. You're carrying someone's faith through time."
+          {t("trust.footerQuote")}
         </p>
       </footer>
     </div>

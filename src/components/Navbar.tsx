@@ -1,9 +1,12 @@
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSelector from "@/components/LanguageSelector";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
@@ -27,21 +30,25 @@ const Navbar = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageSelector />
             <Button variant="ghost" size="sm">
-              Log In
+              {t("nav.login")}
             </Button>
             <Button variant="hero" size="sm">
-              Get Started
+              {t("nav.getStarted")}
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 text-foreground"
-            onClick={() => setIsOpen(!isOpen)}
-          >
-            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
+          <div className="flex items-center gap-2 md:hidden">
+            <LanguageSelector />
+            <button
+              className="p-2 text-foreground"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
@@ -54,10 +61,10 @@ const Navbar = () => {
               <NavLink href="#pricing" mobile>Pricing</NavLink>
               <div className="flex gap-3 pt-4">
                 <Button variant="ghost" size="sm" className="flex-1">
-                  Log In
+                  {t("nav.login")}
                 </Button>
                 <Button variant="hero" size="sm" className="flex-1">
-                  Get Started
+                  {t("nav.getStarted")}
                 </Button>
               </div>
             </div>

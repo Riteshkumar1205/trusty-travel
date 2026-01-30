@@ -1,11 +1,12 @@
 import { 
-  MapPin, 
   Clock, 
   Weight, 
   Package,
   Train,
   Plane,
-  Bus,
+  Car,
+  Bike,
+  Truck,
   MoreVertical,
   Eye
 } from "lucide-react";
@@ -16,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export interface Journey {
   id: string;
@@ -23,7 +25,7 @@ export interface Journey {
   destination: string;
   date: string;
   time: string;
-  transportMode: "train" | "flight" | "bus";
+  transportMode: "train" | "flight" | "bus" | "car" | "bike" | "truck";
   availableCapacity: number;
   usedCapacity: number;
   parcelsCount: number;
@@ -40,22 +42,30 @@ interface ActiveJourneysProps {
 const transportIcons = {
   train: Train,
   flight: Plane,
-  bus: Bus,
-};
-
-const statusColors = {
-  upcoming: "badge-review",
-  "in-transit": "badge-verified",
-  completed: "badge-trusted",
-};
-
-const statusLabels = {
-  upcoming: "Upcoming",
-  "in-transit": "In Transit",
-  completed: "Completed",
+  bus: Car, // Using car for bus as fallback
+  car: Car,
+  bike: Bike,
+  truck: Truck,
 };
 
 const ActiveJourneys = ({ journeys, onViewDetails, onCancelJourney }: ActiveJourneysProps) => {
+  const { t } = useLanguage();
+
+  const statusColors = {
+    upcoming: "badge-review",
+    "in-transit": "badge-verified",
+    completed: "badge-trusted",
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "upcoming": return t("general.upcoming");
+      case "in-transit": return t("general.inTransit");
+      case "completed": return t("general.completed");
+      default: return status;
+    }
+  };
+
   if (journeys.length === 0) {
     return (
       <div className="text-center py-12">
@@ -71,7 +81,7 @@ const ActiveJourneys = ({ journeys, onViewDetails, onCancelJourney }: ActiveJour
   return (
     <div className="space-y-4">
       {journeys.map((journey) => {
-        const TransportIcon = transportIcons[journey.transportMode];
+        const TransportIcon = transportIcons[journey.transportMode] || Car;
         
         return (
           <div
@@ -81,7 +91,7 @@ const ActiveJourneys = ({ journeys, onViewDetails, onCancelJourney }: ActiveJour
             <div className="flex items-start justify-between gap-4">
               {/* Left: Route Info */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-3 mb-3 flex-wrap">
                   <div className="p-2 rounded-lg bg-primary/10 text-primary">
                     <TransportIcon className="w-4 h-4" />
                   </div>
@@ -91,7 +101,7 @@ const ActiveJourneys = ({ journeys, onViewDetails, onCancelJourney }: ActiveJour
                     <span className="truncate">{journey.destination}</span>
                   </div>
                   <span className={statusColors[journey.status]}>
-                    {statusLabels[journey.status]}
+                    {getStatusLabel(journey.status)}
                   </span>
                 </div>
 
@@ -136,7 +146,7 @@ const ActiveJourneys = ({ journeys, onViewDetails, onCancelJourney }: ActiveJour
                         onClick={() => onCancelJourney(journey.id)}
                         className="text-destructive"
                       >
-                        Cancel Journey
+                        {t("general.cancel")} Journey
                       </DropdownMenuItem>
                     )}
                   </DropdownMenuContent>
