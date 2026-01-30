@@ -1,19 +1,41 @@
-import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Menu, X, LogIn, LogOut, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSelector from "@/components/LanguageSelector";
+import { supabase } from "@/integrations/supabase/client";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const { t } = useLanguage();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
       <div className="container-wide">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-gold flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-lg">स</span>
             </div>
@@ -31,12 +53,28 @@ const Navbar = () => {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
             <LanguageSelector />
-            <Button variant="ghost" size="sm">
-              {t("nav.login")}
-            </Button>
-            <Button variant="hero" size="sm">
-              {t("nav.getStarted")}
-            </Button>
+            {user ? (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard/sender")}>
+                  <User className="h-4 w-4 mr-2" />
+                  Dashboard
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
+                  <LogIn className="h-4 w-4 mr-2" />
+                  {t("nav.login")}
+                </Button>
+                <Button variant="hero" size="sm" onClick={() => navigate("/auth")}>
+                  {t("nav.getStarted")}
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -60,12 +98,25 @@ const Navbar = () => {
               <NavLink href="#trust" mobile>Trust & Safety</NavLink>
               <NavLink href="#pricing" mobile>Pricing</NavLink>
               <div className="flex gap-3 pt-4">
-                <Button variant="ghost" size="sm" className="flex-1">
-                  {t("nav.login")}
-                </Button>
-                <Button variant="hero" size="sm" className="flex-1">
-                  {t("nav.getStarted")}
-                </Button>
+                {user ? (
+                  <>
+                    <Button variant="ghost" size="sm" className="flex-1" onClick={() => navigate("/dashboard/sender")}>
+                      Dashboard
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1" onClick={handleLogout}>
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" size="sm" className="flex-1" onClick={() => navigate("/auth")}>
+                      {t("nav.login")}
+                    </Button>
+                    <Button variant="hero" size="sm" className="flex-1" onClick={() => navigate("/auth")}>
+                      {t("nav.getStarted")}
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
