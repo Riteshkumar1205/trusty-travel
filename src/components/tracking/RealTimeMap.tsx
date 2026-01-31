@@ -5,8 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { 
   MapPin, Navigation, Clock, Phone, MessageSquare, 
   Train, Plane, Car, Bike, Truck, RefreshCw, Shield,
-  Locate, ZoomIn, ZoomOut
+  Locate, ZoomIn, ZoomOut, Share2
 } from "lucide-react";
+import { toast } from "sonner";
+import ContactModal from "@/components/communication/ContactModal";
 
 interface Location {
   lat: number;
@@ -21,6 +23,7 @@ interface TrackingData {
   id: string;
   travelerName: string;
   travelerAvatar: string;
+  travelerPhone: string;
   transportMode: string;
   pnrNumber?: string;
   vehicleNumber?: string;
@@ -53,6 +56,7 @@ const mockTrackingData: TrackingData = {
   id: "track-1",
   travelerName: "Rahul Sharma",
   travelerAvatar: "RS",
+  travelerPhone: "+91 98765 43210",
   transportMode: "train",
   pnrNumber: "4521876309",
   source: { city: "Delhi", lat: 28.6139, lng: 77.2090 },
@@ -82,6 +86,10 @@ const RealTimeMap = ({ deliveryId, showControls = true }: RealTimeMapProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [zoom, setZoom] = useState(6);
   const [mapCenter, setMapCenter] = useState({ lat: 23.5, lng: 78.5 });
+  const [contactModal, setContactModal] = useState<{
+    open: boolean;
+    mode: "call" | "message";
+  } | null>(null);
 
   // Simulate real-time location updates
   useEffect(() => {
@@ -316,10 +324,20 @@ const RealTimeMap = ({ deliveryId, showControls = true }: RealTimeMapProps) => {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-10 w-10 rounded-xl"
+                onClick={() => setContactModal({ open: true, mode: "message" })}
+              >
                 <MessageSquare className="h-5 w-5" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-10 w-10 rounded-xl"
+                onClick={() => setContactModal({ open: true, mode: "call" })}
+              >
                 <Phone className="h-5 w-5" />
               </Button>
             </div>
@@ -350,6 +368,22 @@ const RealTimeMap = ({ deliveryId, showControls = true }: RealTimeMapProps) => {
           </p>
         </div>
       </CardContent>
+
+      {/* Contact Modal */}
+      {contactModal && (
+        <ContactModal
+          open={contactModal.open}
+          onOpenChange={(open) => !open && setContactModal(null)}
+          mode={contactModal.mode}
+          contact={{
+            name: tracking.travelerName,
+            initials: tracking.travelerAvatar,
+            phone: tracking.travelerPhone,
+            trustScore: 92,
+            verified: true,
+          }}
+        />
+      )}
     </Card>
   );
 };

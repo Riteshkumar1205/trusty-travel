@@ -74,11 +74,30 @@ const Tracking = () => {
 
             {/* Quick Actions */}
             <div className="grid grid-cols-2 gap-4">
-              <Button variant="outline" className="h-auto py-4 flex-col gap-2 rounded-2xl">
+              <Button 
+                variant="outline" 
+                className="h-auto py-4 flex-col gap-2 rounded-2xl"
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: "Live Parcel Tracking",
+                      text: "Track my parcel in real-time on SAARTHI",
+                      url: window.location.href,
+                    });
+                  } else {
+                    navigator.clipboard.writeText(window.location.href);
+                    import("sonner").then(({ toast }) => toast.success("Link copied to clipboard!"));
+                  }
+                }}
+              >
                 <Navigation className="h-6 w-6 text-accent" />
                 <span className="text-sm">Share Location</span>
               </Button>
-              <Button variant="outline" className="h-auto py-4 flex-col gap-2 rounded-2xl">
+              <Button 
+                variant="outline" 
+                className="h-auto py-4 flex-col gap-2 rounded-2xl"
+                onClick={() => import("sonner").then(({ toast }) => toast.info("Delivery history coming soon!"))}
+              >
                 <Package className="h-6 w-6 text-primary" />
                 <span className="text-sm">Delivery History</span>
               </Button>
