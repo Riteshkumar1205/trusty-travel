@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { 
   Package, 
   User, 
@@ -7,13 +8,18 @@ import {
   Shield,
   MessageCircle,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Camera,
+  Image
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import PhotoProofUpload from "./PhotoProofUpload";
 
 export interface Parcel {
   id: string;
   journeyId: string;
+  deliveryId?: string;
   sender: {
     name: string;
     rating: number;
@@ -31,6 +37,8 @@ export interface Parcel {
   deliveryOtp?: string;
   confidentiality: "low" | "medium" | "high";
   insurance: boolean;
+  pickupPhotoUrl?: string;
+  deliveryPhotoUrl?: string;
 }
 
 interface ParcelManagementProps {
@@ -75,6 +83,35 @@ const ParcelManagement = ({
   onConfirmDelivery,
   onMessageSender 
 }: ParcelManagementProps) => {
+  const [photoUploadModal, setPhotoUploadModal] = useState<{
+    isOpen: boolean;
+    type: "pickup" | "delivery";
+    parcel: Parcel | null;
+  }>({
+    isOpen: false,
+    type: "pickup",
+    parcel: null
+  });
+
+  const openPhotoUpload = (type: "pickup" | "delivery", parcel: Parcel) => {
+    setPhotoUploadModal({ isOpen: true, type, parcel });
+  };
+
+  const closePhotoUpload = () => {
+    setPhotoUploadModal({ isOpen: false, type: "pickup", parcel: null });
+  };
+
+  const handlePhotoSuccess = (photoUrl: string) => {
+    const { type, parcel } = photoUploadModal;
+    if (parcel) {
+      if (type === "pickup") {
+        onConfirmPickup(parcel.id, parcel.pickupOtp || "");
+      } else {
+        onConfirmDelivery(parcel.id, parcel.deliveryOtp || "");
+      }
+    }
+    closePhotoUpload();
+  };
   if (parcels.length === 0) {
     return (
       <div className="text-center py-12">
@@ -172,10 +209,10 @@ const ParcelManagement = ({
                 <Button 
                   variant="hero" 
                   size="sm"
-                  onClick={() => onConfirmPickup(parcel.id, parcel.pickupOtp || "")}
+                  onClick={() => openPhotoUpload("pickup", parcel)}
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  Confirm Pickup
+                  <Camera className="w-4 h-4" />
+                  Pickup with Photo
                 </Button>
               )}
 
@@ -183,10 +220,24 @@ const ParcelManagement = ({
                 <Button 
                   variant="trust" 
                   size="sm"
-                  onClick={() => onConfirmDelivery(parcel.id, parcel.deliveryOtp || "")}
+                  onClick={() => openPhotoUpload("delivery", parcel)}
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  Confirm Delivery
+                  <Camera className="w-4 h-4" />
+                  Deliver with Photo
+                </Button>
+              )}
+
+              {parcel.pickupPhotoUrl && (
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Image className="w-3.5 h-3.5" />
+                  Pickup Photo
+                </Button>
+              )}
+
+              {parcel.deliveryPhotoUrl && (
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <Image className="w-3.5 h-3.5" />
+                  Delivery Photo
                 </Button>
               )}
 
@@ -211,6 +262,21 @@ const ParcelManagement = ({
           </div>
         );
       })}
+
+      {/* Photo Upload Modal */}
+      <Dialog open={photoUploadModal.isOpen} onOpenChange={(open) => !open && closePhotoUpload()}>
+        <DialogContent className="sm:max-w-md p-0 bg-transparent border-none">
+          {photoUploadModal.parcel && (
+            <PhotoProofUpload
+              type={photoUploadModal.type}
+              deliveryId={photoUploadModal.parcel.deliveryId || photoUploadModal.parcel.id}
+              parcelTitle={photoUploadModal.parcel.category}
+              onSuccess={handlePhotoSuccess}
+              onClose={closePhotoUpload}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
