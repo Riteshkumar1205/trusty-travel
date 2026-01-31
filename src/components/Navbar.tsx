@@ -49,6 +49,7 @@ const Navbar = () => {
             <NavLink href="#how-it-works">How It Works</NavLink>
             <NavLink href="#features">Features</NavLink>
             <NavLink href="#trust">Trust & Safety</NavLink>
+            <NavLink href="/tracking" isRoute>Track Transport</NavLink>
             <NavLink href="#pricing">Pricing</NavLink>
           </div>
 
@@ -98,6 +99,7 @@ const Navbar = () => {
               <NavLink href="#how-it-works" mobile>How It Works</NavLink>
               <NavLink href="#features" mobile>Features</NavLink>
               <NavLink href="#trust" mobile>Trust & Safety</NavLink>
+              <NavLink href="/tracking" mobile isRoute>Track Transport</NavLink>
               <NavLink href="#pricing" mobile>Pricing</NavLink>
               <div className="flex gap-3 pt-4">
                 {user ? (
@@ -131,20 +133,39 @@ const Navbar = () => {
 const NavLink = ({ 
   href, 
   children, 
-  mobile 
+  mobile,
+  isRoute
 }: { 
   href: string; 
   children: React.ReactNode;
   mobile?: boolean;
-}) => (
-  <a
-    href={href}
-    className={`text-muted-foreground hover:text-foreground transition-colors link-underline ${
-      mobile ? "text-base py-2" : "text-sm"
-    }`}
-  >
-    {children}
-  </a>
-);
+  isRoute?: boolean;
+}) => {
+  const navigate = useNavigate();
+  
+  if (isRoute) {
+    return (
+      <button
+        onClick={() => navigate(href)}
+        className={`text-muted-foreground hover:text-foreground transition-colors link-underline text-left ${
+          mobile ? "text-base py-2" : "text-sm"
+        }`}
+      >
+        {children}
+      </button>
+    );
+  }
+  
+  return (
+    <a
+      href={href}
+      className={`text-muted-foreground hover:text-foreground transition-colors link-underline ${
+        mobile ? "text-base py-2" : "text-sm"
+      }`}
+    >
+      {children}
+    </a>
+  );
+};
 
 export default Navbar;

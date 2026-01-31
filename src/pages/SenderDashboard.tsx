@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Package, Users, LayoutDashboard, Plus, ArrowLeft, 
-  Shield, Sparkles
+  Shield, Sparkles, Loader2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ParticleBackground from "@/components/ParticleBackground";
@@ -15,9 +15,26 @@ import ActiveParcels from "@/components/dashboard/ActiveParcels";
 import LanguageSelector from "@/components/LanguageSelector";
 import BottomNav from "@/components/layout/BottomNav";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import { useAuth } from "@/hooks/useAuth";
 
 const SenderDashboard = () => {
+  const { user, isLoading, isAuthenticated, signOut } = useAuth({ requireAuth: true });
   const [activeTab, setActiveTab] = useState("overview");
+
+  // Show loading state while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Get user display info
+  const userInitial = user?.user_metadata?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || "U";
 
   return (
     <div className="min-h-screen relative pb-20 md:pb-0">
@@ -50,9 +67,9 @@ const SenderDashboard = () => {
             <div className="flex items-center gap-3">
               <LanguageSelector />
               <NotificationBell />
-              <Button variant="ghost" size="icon" className="rounded-xl">
+              <Button variant="ghost" size="icon" className="rounded-xl" onClick={signOut} title="Logout">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-sm font-semibold text-primary-foreground">
-                  U
+                  {userInitial}
                 </div>
               </Button>
             </div>
