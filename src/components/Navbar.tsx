@@ -48,7 +48,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-8">
             <NavLink href="#how-it-works">How It Works</NavLink>
             <NavLink href="#features">Features</NavLink>
-            <NavLink href="#trust">Trust & Safety</NavLink>
+            <NavLink href="/travelers" isRoute>Find Travelers</NavLink>
             <NavLink href="/tracking" isRoute>Track Transport</NavLink>
             <NavLink href="#pricing">Pricing</NavLink>
           </div>
@@ -98,7 +98,7 @@ const Navbar = () => {
             <div className="flex flex-col gap-4">
               <NavLink href="#how-it-works" mobile>How It Works</NavLink>
               <NavLink href="#features" mobile>Features</NavLink>
-              <NavLink href="#trust" mobile>Trust & Safety</NavLink>
+              <NavLink href="/travelers" mobile isRoute>Find Travelers</NavLink>
               <NavLink href="/tracking" mobile isRoute>Track Transport</NavLink>
               <NavLink href="#pricing" mobile>Pricing</NavLink>
               <div className="flex gap-3 pt-4">

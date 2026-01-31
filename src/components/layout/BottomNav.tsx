@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Package, Users, Navigation, User } from "lucide-react";
+import { Home, Package, Users, Navigation, Search } from "lucide-react";
 
 interface NavItem {
   icon: React.ReactNode;
@@ -11,8 +11,8 @@ const navItems: NavItem[] = [
   { icon: <Home className="h-5 w-5" />, label: "Home", path: "/" },
   { icon: <Package className="h-5 w-5" />, label: "Send", path: "/dashboard/sender" },
   { icon: <Navigation className="h-5 w-5" />, label: "Track", path: "/tracking" },
+  { icon: <Search className="h-5 w-5" />, label: "Browse", path: "/travelers" },
   { icon: <Users className="h-5 w-5" />, label: "Travel", path: "/dashboard/traveler" },
-  { icon: <User className="h-5 w-5" />, label: "Profile", path: "/profile" },
 ];
 
 const BottomNav = () => {
