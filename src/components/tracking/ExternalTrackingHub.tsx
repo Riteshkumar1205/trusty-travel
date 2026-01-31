@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Train, Bus, Plane, Search, MapPin, Clock, RefreshCw,
-  ArrowRight, Navigation, ExternalLink, Globe
+  ArrowRight, Navigation, ExternalLink, Globe, Radio
 } from "lucide-react";
-
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 interface TrackingLink {
   name: string;
   url: string;
@@ -110,7 +111,6 @@ const trackingServices: Record<string, TrackingLink[]> = {
   ],
 };
 
-// Mock tracking data for demo
 interface TrackingStatus {
   type: "train" | "bus" | "flight";
   identifier: string;
@@ -123,6 +123,7 @@ interface TrackingStatus {
   eta: string;
   progress: number;
   lastUpdated: string;
+  isMock?: boolean;
 }
 
 const ExternalTrackingHub = () => {
@@ -130,60 +131,103 @@ const ExternalTrackingHub = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [trackingResult, setTrackingResult] = useState<TrackingStatus | null>(null);
+  const [_isLiveData, setIsLiveData] = useState(false);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     
     setIsLoading(true);
     
-    // Simulate API call - In production, this would call actual APIs
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Mock result based on search type
-    const mockResults: Record<string, TrackingStatus> = {
-      train: {
-        type: "train",
-        identifier: searchQuery || "12951",
-        name: "Mumbai Rajdhani Express",
-        source: "New Delhi",
-        destination: "Mumbai CST",
-        currentLocation: "Bhopal Junction",
-        status: "delayed",
-        delay: 15,
-        eta: "08:50",
-        progress: 65,
-        lastUpdated: "2 minutes ago",
-      },
-      bus: {
-        type: "bus",
-        identifier: searchQuery || "RB-2847",
-        name: "RedBus Volvo AC",
-        source: "Delhi ISBT",
-        destination: "Jaipur",
-        currentLocation: "Near Manesar Toll Plaza",
-        status: "on-time",
-        delay: 0,
-        eta: "14:30",
-        progress: 42,
-        lastUpdated: "1 minute ago",
-      },
-      flight: {
-        type: "flight",
-        identifier: searchQuery || "6E-2341",
-        name: "IndiGo Airlines",
-        source: "Delhi (DEL)",
-        destination: "Mumbai (BOM)",
-        currentLocation: "In Air - 35,000 ft",
-        status: "on-time",
-        delay: 0,
-        eta: "12:45",
-        progress: 78,
-        lastUpdated: "Live",
-      },
-    };
+    try {
+      // Call edge function for transport tracking
+      const { data, error } = await supabase.functions.invoke('transport-tracking', {
+        body: { type: activeTab, identifier: searchQuery }
+      });
 
-    setTrackingResult(mockResults[activeTab]);
-    setIsLoading(false);
+      if (error) throw error;
+
+      if (data?.success && data?.data) {
+        const apiData = data.data;
+        setIsLiveData(!apiData.isMock);
+        
+        // Map API response to TrackingStatus
+        const result: TrackingStatus = {
+          type: activeTab as "train" | "bus" | "flight",
+          identifier: apiData.pnr || apiData.bookingId || apiData.flightNumber || searchQuery,
+          name: apiData.trainName || apiData.operatorName || apiData.airline || "Unknown",
+          source: apiData.source || "",
+          destination: apiData.destination || "",
+          currentLocation: apiData.currentStation || apiData.currentLocation || apiData.altitude || "In Transit",
+          status: apiData.delay > 0 ? "delayed" : "on-time",
+          delay: apiData.delay || 0,
+          eta: apiData.arrivalTime || "",
+          progress: activeTab === "train" ? 65 : activeTab === "bus" ? 42 : 78,
+          lastUpdated: new Date(apiData.lastUpdated).toLocaleTimeString(),
+          isMock: apiData.isMock,
+        };
+        
+        setTrackingResult(result);
+        
+        if (apiData.isMock) {
+          toast.info("Showing demo data. Add API keys for live tracking.", {
+            description: "Contact support to configure live APIs"
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Tracking error:", error);
+      toast.error("Failed to fetch tracking data");
+      
+      // Fallback to mock data on error
+      const mockResults: Record<string, TrackingStatus> = {
+        train: {
+          type: "train",
+          identifier: searchQuery,
+          name: "Mumbai Rajdhani Express",
+          source: "New Delhi",
+          destination: "Mumbai CST",
+          currentLocation: "Bhopal Junction",
+          status: "delayed",
+          delay: 15,
+          eta: "08:50",
+          progress: 65,
+          lastUpdated: new Date().toLocaleTimeString(),
+          isMock: true,
+        },
+        bus: {
+          type: "bus",
+          identifier: searchQuery,
+          name: "RedBus Volvo AC",
+          source: "Delhi ISBT",
+          destination: "Jaipur",
+          currentLocation: "Near Manesar Toll Plaza",
+          status: "on-time",
+          delay: 0,
+          eta: "14:30",
+          progress: 42,
+          lastUpdated: new Date().toLocaleTimeString(),
+          isMock: true,
+        },
+        flight: {
+          type: "flight",
+          identifier: searchQuery,
+          name: "IndiGo Airlines",
+          source: "Delhi (DEL)",
+          destination: "Mumbai (BOM)",
+          currentLocation: "In Air - 35,000 ft",
+          status: "on-time",
+          delay: 0,
+          eta: "12:45",
+          progress: 78,
+          lastUpdated: new Date().toLocaleTimeString(),
+          isMock: true,
+        },
+      };
+      setTrackingResult(mockResults[activeTab]);
+      setIsLiveData(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const openExternalTracker = (url: string, query?: string) => {
@@ -282,7 +326,19 @@ const ExternalTrackingHub = () => {
                   <div className="p-4 rounded-2xl bg-secondary/30 border border-border/30 animate-fade-in">
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h3 className="font-bold text-lg">{trackingResult.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-lg">{trackingResult.name}</h3>
+                          {trackingResult.isMock ? (
+                            <Badge variant="outline" className="text-xs bg-muted/30">
+                              Demo Data
+                            </Badge>
+                          ) : (
+                            <Badge className="text-xs bg-success/20 text-success border-success/30">
+                              <Radio className="h-3 w-3 mr-1 animate-pulse" />
+                              Live
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-sm text-muted-foreground font-mono">
                           {tabType === "train" ? "Train" : tabType === "bus" ? "Bus" : "Flight"} #{trackingResult.identifier}
                         </p>
