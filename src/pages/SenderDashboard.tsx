@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Package, Users, LayoutDashboard, Plus, ArrowLeft, 
-  Bell, User, Shield, Sparkles
+  Shield, Sparkles
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import ParticleBackground from "@/components/ParticleBackground";
@@ -14,6 +14,7 @@ import SenderStats from "@/components/dashboard/SenderStats";
 import ActiveParcels from "@/components/dashboard/ActiveParcels";
 import LanguageSelector from "@/components/LanguageSelector";
 import BottomNav from "@/components/layout/BottomNav";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 const SenderDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -48,12 +49,7 @@ const SenderDashboard = () => {
 
             <div className="flex items-center gap-3">
               <LanguageSelector />
-              <Button variant="ghost" size="icon" className="rounded-xl relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive rounded-full text-[10px] flex items-center justify-center text-destructive-foreground">
-                  2
-                </span>
-              </Button>
+              <NotificationBell />
               <Button variant="ghost" size="icon" className="rounded-xl">
                 <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-sm font-semibold text-primary-foreground">
                   U
