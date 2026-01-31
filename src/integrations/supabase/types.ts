@@ -404,6 +404,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_traveler_display_name: {
+        Args: { traveler_user_id: string }
+        Returns: string
+      }
+      get_traveler_trust_score: {
+        Args: { traveler_user_id: string }
+        Returns: number
+      }
+      get_traveler_verification_status: {
+        Args: { traveler_user_id: string }
+        Returns: string
+      }
       is_delivery_participant: {
         Args: { delivery_id: string }
         Returns: boolean
