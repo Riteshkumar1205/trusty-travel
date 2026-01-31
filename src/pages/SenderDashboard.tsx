@@ -13,12 +13,13 @@ import TravelerMatching from "@/components/dashboard/TravelerMatching";
 import SenderStats from "@/components/dashboard/SenderStats";
 import ActiveParcels from "@/components/dashboard/ActiveParcels";
 import LanguageSelector from "@/components/LanguageSelector";
+import BottomNav from "@/components/layout/BottomNav";
 
 const SenderDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative pb-20 md:pb-0">
       <ParticleBackground />
       
       {/* Header */}
@@ -158,16 +159,8 @@ const SenderDashboard = () => {
         </Tabs>
       </main>
 
-      {/* Bottom CTA for Mobile */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background/80 backdrop-blur-xl border-t border-border/50 lg:hidden z-50">
-        <Button 
-          className="w-full bg-accent hover:bg-accent/90 text-accent-foreground rounded-2xl h-14"
-          onClick={() => setActiveTab("post")}
-        >
-          <Sparkles className="h-5 w-5 mr-2" />
-          Post New Parcel
-        </Button>
-      </div>
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 };

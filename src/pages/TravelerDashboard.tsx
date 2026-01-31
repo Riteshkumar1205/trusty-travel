@@ -31,6 +31,7 @@ import ActiveJourneys, { Journey } from "@/components/dashboard/ActiveJourneys";
 import ParcelManagement, { Parcel } from "@/components/dashboard/ParcelManagement";
 import LiveTrackingMap from "@/components/dashboard/LiveTrackingMap";
 import LanguageSelector from "@/components/LanguageSelector";
+import BottomNav from "@/components/layout/BottomNav";
 
 // Mock data
 const mockStats = {
@@ -159,7 +160,7 @@ const TravelerDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       {/* Top Navigation */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="container-wide">
@@ -451,11 +452,14 @@ const TravelerDashboard = () => {
       </main>
 
       {/* Footer Note */}
-      <footer className="container-wide py-6 border-t border-border/50">
+      <footer className="container-wide py-6 border-t border-border/50 hidden md:block">
         <p className="text-center text-xs text-muted-foreground italic">
           {t("trust.footerQuote")}
         </p>
       </footer>
+
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 };
