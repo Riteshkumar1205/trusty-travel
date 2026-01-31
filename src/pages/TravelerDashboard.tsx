@@ -14,7 +14,8 @@ import {
   Shield,
   MapPinned,
   Sliders,
-  Wallet
+  Wallet,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,15 +38,20 @@ import ParcelManagement, { Parcel } from "@/components/dashboard/ParcelManagemen
 import LiveTrackingMap from "@/components/dashboard/LiveTrackingMap";
 import LanguageSelector from "@/components/LanguageSelector";
 import BottomNav from "@/components/layout/BottomNav";
+import { useAuth } from "@/hooks/useAuth";
+import { useTravelerData } from "@/hooks/useTravelerData";
 
-// Mock data for demo purposes - in production, use useTravelerData hook
-const mockStats = {
-  totalEarnings: 24580,
-  thisMonthEarnings: 4200,
-  totalJourneys: 42,
-  totalParcels: 78,
-  trustScore: 4.9,
-  successRate: 99.2,
+// Default stats for fallback
+const defaultStats = {
+  totalEarnings: 0,
+  thisMonthEarnings: 0,
+  thisWeekEarnings: 0,
+  todayEarnings: 0,
+  totalJourneys: 0,
+  totalParcels: 0,
+  trustScore: 5,
+  successRate: 100,
+  pendingPayout: 0,
 };
 
 const mockJourneys: Journey[] = [
@@ -135,10 +141,65 @@ const mockParcels: Parcel[] = [
 const TravelerDashboard = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
+  const { user, isLoading: authLoading, signOut } = useAuth({ requireAuth: true });
+  const { stats, journeys, parcels, transactions, isLoading: dataLoading } = useTravelerData();
+  
   const [activeTab, setActiveTab] = useState("overview");
   const [showPostForm, setShowPostForm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+
+  // Show loading state while checking auth or loading data
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Use real data or defaults
+  const displayStats = stats || defaultStats;
+  // Convert journeys with proper type casting for transportMode
+  const displayJourneys: Journey[] = journeys.length > 0 
+    ? journeys.map(j => ({
+        id: j.id,
+        source: j.source,
+        destination: j.destination,
+        date: j.date,
+        time: j.time,
+        transportMode: j.transportMode as "bike" | "bus" | "car" | "flight" | "train" | "truck",
+        availableCapacity: j.availableCapacity,
+        usedCapacity: j.usedCapacity,
+        parcelsCount: j.parcelsCount,
+        status: j.status,
+        earnings: j.earnings,
+      }))
+    : mockJourneys;
+    
+  const displayParcels: Parcel[] = parcels.length > 0
+    ? parcels.map(p => ({
+        id: p.id,
+        journeyId: p.journeyId,
+        sender: p.sender,
+        receiver: p.receiver,
+        category: p.category,
+        weight: p.weight,
+        price: p.price,
+        status: p.status,
+        pickupOtp: p.pickupOtp,
+        deliveryOtp: p.deliveryOtp,
+        confidentiality: p.confidentiality,
+        insurance: p.insurance,
+      }))
+    : mockParcels;
+
+  // Get user display info
+  const userName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Traveler";
+  const userInitial = userName[0]?.toUpperCase() || "T";
 
   const handleJourneySubmit = (data: any) => {
     console.log("Journey posted:", data);
@@ -254,15 +315,15 @@ const TravelerDashboard = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2">
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                      <User className="w-4 h-4 text-primary" />
+                      <span className="text-sm font-semibold text-primary">{userInitial}</span>
                     </div>
-                    <span className="hidden md:inline text-sm">Arjun M.</span>
+                    <span className="hidden md:inline text-sm">{userName}</span>
                     <ChevronDown className="w-4 h-4 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="px-3 py-2 border-b border-border">
-                    <div className="font-medium">Arjun Mehta</div>
+                    <div className="font-medium">{userName}</div>
                     <div className="text-xs text-muted-foreground flex items-center gap-1">
                       <Shield className="w-3 h-3 text-primary" />
                       {t("dashboard.verifiedSaarthi")}
@@ -277,7 +338,7 @@ const TravelerDashboard = () => {
                     {t("nav.settings")}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem className="text-destructive">
+                  <DropdownMenuItem className="text-destructive" onClick={signOut}>
                     <LogOut className="w-4 h-4 mr-2" />
                     {t("nav.signOut")}
                   </DropdownMenuItem>
@@ -392,20 +453,20 @@ const TravelerDashboard = () => {
             <section>
               <TravelerStatusCard
                 isOnline={isOnline}
-                currentJourney={mockJourneys.find(j => j.status === "in-transit") ? {
-                  id: mockJourneys[1].id,
-                  source: mockJourneys[1].source,
-                  destination: mockJourneys[1].destination,
-                  departureTime: mockJourneys[1].time,
+                currentJourney={displayJourneys.find(j => j.status === "in-transit") ? {
+                  id: displayJourneys.find(j => j.status === "in-transit")!.id,
+                  source: displayJourneys.find(j => j.status === "in-transit")!.source,
+                  destination: displayJourneys.find(j => j.status === "in-transit")!.destination,
+                  departureTime: displayJourneys.find(j => j.status === "in-transit")!.time,
                   progress: 62,
-                  parcelsCount: mockJourneys[1].parcelsCount,
-                  earnings: mockJourneys[1].earnings
+                  parcelsCount: displayJourneys.find(j => j.status === "in-transit")!.parcelsCount,
+                  earnings: displayJourneys.find(j => j.status === "in-transit")!.earnings
                 } : null}
                 stats={{
-                  todayEarnings: 1250,
-                  todayParcels: 3,
-                  weeklyEarnings: mockStats.thisMonthEarnings,
-                  rating: mockStats.trustScore
+                  todayEarnings: displayStats.todayEarnings,
+                  todayParcels: displayStats.totalParcels,
+                  weeklyEarnings: displayStats.thisWeekEarnings,
+                  rating: displayStats.trustScore
                 }}
                 onToggleOnline={setIsOnline}
                 onViewJourney={handleViewDetails}
@@ -415,7 +476,14 @@ const TravelerDashboard = () => {
             {/* Stats */}
             <section>
               <h2 className="text-lg font-semibold text-foreground mb-4">{t("dashboard.yourStats")}</h2>
-              <TravelerStats stats={mockStats} />
+              <TravelerStats stats={{
+                totalEarnings: displayStats.totalEarnings,
+                thisMonthEarnings: displayStats.thisMonthEarnings,
+                totalJourneys: displayStats.totalJourneys,
+                totalParcels: displayStats.totalParcels,
+                trustScore: displayStats.trustScore,
+                successRate: displayStats.successRate,
+              }} />
             </section>
 
             {/* Live Tracking Preview */}
@@ -441,7 +509,7 @@ const TravelerDashboard = () => {
                 </Button>
               </div>
               <ActiveJourneys 
-                journeys={mockJourneys.filter(j => j.status !== "completed").slice(0, 2)}
+                journeys={displayJourneys.filter(j => j.status !== "completed").slice(0, 2)}
                 onViewDetails={handleViewDetails}
                 onCancelJourney={handleCancelJourney}
               />
@@ -456,7 +524,7 @@ const TravelerDashboard = () => {
                 </Button>
               </div>
               <ParcelManagement 
-                parcels={mockParcels.filter(p => p.status === "pending-pickup").slice(0, 2)}
+                parcels={displayParcels.filter(p => p.status === "pending-pickup").slice(0, 2)}
                 onConfirmPickup={handleConfirmPickup}
                 onConfirmDelivery={handleConfirmDelivery}
                 onMessageSender={handleMessageSender}
@@ -478,7 +546,7 @@ const TravelerDashboard = () => {
               </Button>
             </div>
             <ActiveJourneys 
-              journeys={mockJourneys}
+              journeys={displayJourneys}
               onViewDetails={handleViewDetails}
               onCancelJourney={handleCancelJourney}
             />
@@ -492,7 +560,7 @@ const TravelerDashboard = () => {
               </p>
             </div>
             <ParcelManagement 
-              parcels={mockParcels}
+              parcels={displayParcels}
               onConfirmPickup={handleConfirmPickup}
               onConfirmDelivery={handleConfirmDelivery}
               onMessageSender={handleMessageSender}
@@ -541,9 +609,9 @@ const TravelerDashboard = () => {
               </p>
             </div>
             <EarningsBreakdown 
-              totalEarnings={mockStats.totalEarnings}
-              thisMonthEarnings={mockStats.thisMonthEarnings}
-              pendingPayout={1850}
+              totalEarnings={displayStats.totalEarnings}
+              thisMonthEarnings={displayStats.thisMonthEarnings}
+              pendingPayout={displayStats.pendingPayout}
               transactions={[]}
             />
           </TabsContent>
