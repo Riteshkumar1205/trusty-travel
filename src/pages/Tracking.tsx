@@ -1,12 +1,11 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Navigation, Package, Train, Bus } from "lucide-react";
+import { ArrowLeft, Navigation, Package, Train, Bus, Plane } from "lucide-react";
 import { Link } from "react-router-dom";
 import ParticleBackground from "@/components/ParticleBackground";
 import RealTimeMap from "@/components/tracking/RealTimeMap";
-import TransportTracker from "@/components/tracking/TransportTracker";
+import ExternalTrackingHub from "@/components/tracking/ExternalTrackingHub";
 import LanguageSelector from "@/components/LanguageSelector";
 import BottomNav from "@/components/layout/BottomNav";
 
@@ -44,7 +43,7 @@ const Tracking = () => {
       {/* Main Content */}
       <main className="container-wide py-6 relative z-10">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-secondary/50 backdrop-blur-sm border border-border/50 p-1 rounded-2xl grid grid-cols-3">
+          <TabsList className="bg-secondary/50 backdrop-blur-sm border border-border/50 p-1 rounded-2xl grid grid-cols-2">
             <TabsTrigger 
               value="parcel" 
               className="rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md gap-2"
@@ -53,18 +52,11 @@ const Tracking = () => {
               <span className="hidden sm:inline">My Parcel</span>
             </TabsTrigger>
             <TabsTrigger 
-              value="train" 
+              value="transport" 
               className="rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md gap-2"
             >
               <Train className="h-4 w-4" />
-              <span className="hidden sm:inline">Train</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="bus" 
-              className="rounded-xl data-[state=active]:bg-background data-[state=active]:shadow-md gap-2"
-            >
-              <Bus className="h-4 w-4" />
-              <span className="hidden sm:inline">Bus</span>
+              <span className="hidden sm:inline">Train / Bus / Flight</span>
             </TabsTrigger>
           </TabsList>
 
@@ -104,12 +96,8 @@ const Tracking = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="train" className="space-y-6">
-            <TransportTracker />
-          </TabsContent>
-
-          <TabsContent value="bus" className="space-y-6">
-            <TransportTracker />
+          <TabsContent value="transport" className="space-y-6">
+            <ExternalTrackingHub />
           </TabsContent>
         </Tabs>
       </main>

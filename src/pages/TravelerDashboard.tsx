@@ -38,7 +38,7 @@ import LiveTrackingMap from "@/components/dashboard/LiveTrackingMap";
 import LanguageSelector from "@/components/LanguageSelector";
 import BottomNav from "@/components/layout/BottomNav";
 
-// Mock data
+// Mock data for demo purposes - in production, use useTravelerData hook
 const mockStats = {
   totalEarnings: 24580,
   thisMonthEarnings: 4200,
