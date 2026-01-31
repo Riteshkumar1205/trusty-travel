@@ -8,14 +8,32 @@ import {
   Car as CarIcon,
   FileText,
   Sparkles,
-  X
+  X,
+  Package,
+  CheckCircle2,
+  Smartphone,
+  Shirt,
+  Pizza,
+  Pill,
+  Box
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { transportModes, getTransportModesByCategory, TransportMode } from "@/lib/transportModes";
 import SmartModeRecommender from "./SmartModeRecommender";
+
+const PARCEL_TYPES = [
+  { id: "documents", label: "Documents", icon: FileText, color: "bg-blue-500/20 text-blue-400" },
+  { id: "electronics", label: "Electronics", icon: Smartphone, color: "bg-purple-500/20 text-purple-400" },
+  { id: "clothing", label: "Clothing", icon: Shirt, color: "bg-pink-500/20 text-pink-400" },
+  { id: "food", label: "Food Items", icon: Pizza, color: "bg-orange-500/20 text-orange-400" },
+  { id: "medicines", label: "Medicines", icon: Pill, color: "bg-green-500/20 text-green-400" },
+  { id: "general", label: "General", icon: Box, color: "bg-gray-500/20 text-gray-400" },
+];
 
 interface JourneyFormData {
   source: string;
@@ -27,6 +45,9 @@ interface JourneyFormData {
   vehicleNumber: string;
   drivingLicense: string;
   availableCapacity: number;
+  acceptedParcelTypes: string[];
+  acceptUrgent: boolean;
+  notes: string;
 }
 
 interface JourneyPostFormProps {
@@ -46,7 +67,19 @@ const JourneyPostForm = ({ onSubmit }: JourneyPostFormProps) => {
     vehicleNumber: "",
     drivingLicense: "",
     availableCapacity: 5,
+    acceptedParcelTypes: ["documents", "electronics", "clothing", "general"],
+    acceptUrgent: true,
+    notes: "",
   });
+
+  const toggleParcelType = (typeId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      acceptedParcelTypes: prev.acceptedParcelTypes.includes(typeId)
+        ? prev.acceptedParcelTypes.filter(t => t !== typeId)
+        : [...prev.acceptedParcelTypes, typeId]
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -314,6 +347,68 @@ const JourneyPostForm = ({ onSubmit }: JourneyPostFormProps) => {
             <p className="text-xs text-muted-foreground">
               {t("journey.maxCapacity").replace("20", String(selectedMode?.maxCapacity || 20))}
             </p>
+          </div>
+        </div>
+
+        {/* Parcel Type Preferences - Rapido Style */}
+        <div className="space-y-4 p-4 rounded-xl bg-primary/5 border border-primary/10">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium flex items-center gap-2">
+              <Package className="h-4 w-4 text-primary" />
+              What can you carry?
+            </Label>
+            <span className="text-xs text-muted-foreground">Select all that apply</span>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {PARCEL_TYPES.map((type) => {
+              const Icon = type.icon;
+              const isSelected = formData.acceptedParcelTypes.includes(type.id);
+              
+              return (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => toggleParcelType(type.id)}
+                  className={`flex items-center gap-2 p-3 rounded-xl border transition-all ${
+                    isSelected
+                      ? "border-primary bg-primary/10"
+                      : "border-border/50 bg-background/50 hover:border-primary/30"
+                  }`}
+                >
+                  <div className={`p-1.5 rounded-lg ${type.color}`}>
+                    <Icon className="h-3.5 w-3.5" />
+                  </div>
+                  <span className="text-xs font-medium flex-1 text-left">{type.label}</span>
+                  {isSelected && (
+                    <CheckCircle2 className="h-4 w-4 text-primary" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Urgent Delivery Toggle */}
+          <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/30">
+            <div>
+              <p className="text-sm font-medium">Accept Urgent Deliveries</p>
+              <p className="text-xs text-muted-foreground">Earn 1.5x for time-sensitive parcels</p>
+            </div>
+            <Switch
+              checked={formData.acceptUrgent}
+              onCheckedChange={(checked) => setFormData({ ...formData, acceptUrgent: checked })}
+            />
+          </div>
+
+          {/* Notes */}
+          <div className="space-y-2">
+            <Label className="text-xs text-muted-foreground">Special Instructions (Optional)</Label>
+            <Textarea
+              placeholder="E.g., I have secure storage, can handle fragile items..."
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              className="bg-background/50 border-border/50 min-h-[60px] text-sm"
+            />
           </div>
         </div>
 

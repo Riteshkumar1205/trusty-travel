@@ -20,11 +20,15 @@ export type Database = {
           created_at: string
           delivered_at: string | null
           delivery_otp: string | null
+          delivery_photo_url: string | null
           id: string
           journey_id: string
           parcel_id: string
           pickup_at: string | null
           pickup_otp: string | null
+          pickup_photo_url: string | null
+          recipient_name: string | null
+          recipient_phone: string | null
           sender_id: string
           sender_rating: number | null
           status: string | null
@@ -37,11 +41,15 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           delivery_otp?: string | null
+          delivery_photo_url?: string | null
           id?: string
           journey_id: string
           parcel_id: string
           pickup_at?: string | null
           pickup_otp?: string | null
+          pickup_photo_url?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
           sender_id: string
           sender_rating?: number | null
           status?: string | null
@@ -54,11 +62,15 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           delivery_otp?: string | null
+          delivery_photo_url?: string | null
           id?: string
           journey_id?: string
           parcel_id?: string
           pickup_at?: string | null
           pickup_otp?: string | null
+          pickup_photo_url?: string | null
+          recipient_name?: string | null
+          recipient_phone?: string | null
           sender_id?: string
           sender_rating?: number | null
           status?: string | null
@@ -140,6 +152,7 @@ export type Database = {
       }
       journeys: {
         Row: {
+          accepted_parcel_types: string[] | null
           arrival_date: string
           arrival_time: string
           available_capacity: number
@@ -151,6 +164,8 @@ export type Database = {
           destination_city: string
           destination_location: string
           id: string
+          max_parcel_weight: number | null
+          notes: string | null
           pnr_number: string | null
           price_per_kg: number
           source_city: string
@@ -163,6 +178,7 @@ export type Database = {
           vehicle_number: string | null
         }
         Insert: {
+          accepted_parcel_types?: string[] | null
           arrival_date: string
           arrival_time: string
           available_capacity: number
@@ -174,6 +190,8 @@ export type Database = {
           destination_city: string
           destination_location: string
           id?: string
+          max_parcel_weight?: number | null
+          notes?: string | null
           pnr_number?: string | null
           price_per_kg: number
           source_city: string
@@ -186,6 +204,7 @@ export type Database = {
           vehicle_number?: string | null
         }
         Update: {
+          accepted_parcel_types?: string[] | null
           arrival_date?: string
           arrival_time?: string
           available_capacity?: number
@@ -197,6 +216,8 @@ export type Database = {
           destination_city?: string
           destination_location?: string
           id?: string
+          max_parcel_weight?: number | null
+          notes?: string | null
           pnr_number?: string | null
           price_per_kg?: number
           source_city?: string
@@ -278,6 +299,7 @@ export type Database = {
           title: string
           updated_at: string
           urgency: string | null
+          urgent_delivery: boolean | null
           user_id: string
           weight: number
         }
@@ -299,6 +321,7 @@ export type Database = {
           title: string
           updated_at?: string
           urgency?: string | null
+          urgent_delivery?: boolean | null
           user_id: string
           weight: number
         }
@@ -320,6 +343,7 @@ export type Database = {
           title?: string
           updated_at?: string
           urgency?: string | null
+          urgent_delivery?: boolean | null
           user_id?: string
           weight?: number
         }

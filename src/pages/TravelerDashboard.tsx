@@ -12,7 +12,8 @@ import {
   Home,
   User,
   Shield,
-  MapPinned
+  MapPinned,
+  Sliders
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,6 +27,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useLanguage } from "@/contexts/LanguageContext";
 import TravelerStats from "@/components/dashboard/TravelerStats";
+import TravelerStatusCard from "@/components/dashboard/TravelerStatusCard";
+import TravelerPreferences from "@/components/dashboard/TravelerPreferences";
 import JourneyPostForm from "@/components/dashboard/JourneyPostForm";
 import ActiveJourneys, { Journey } from "@/components/dashboard/ActiveJourneys";
 import ParcelManagement, { Parcel } from "@/components/dashboard/ParcelManagement";
@@ -133,6 +136,7 @@ const TravelerDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [showPostForm, setShowPostForm] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
 
   const handleJourneySubmit = (data: any) => {
     console.log("Journey posted:", data);
@@ -209,6 +213,14 @@ const TravelerDashboard = () => {
               >
                 <MapPinned className="w-4 h-4 mr-2" />
                 {t("tracking.liveLocation")}
+              </Button>
+              <Button 
+                variant={activeTab === "preferences" ? "secondary" : "ghost"} 
+                size="sm"
+                onClick={() => setActiveTab("preferences")}
+              >
+                <Sliders className="w-4 h-4 mr-2" />
+                Preferences
               </Button>
             </div>
 
@@ -310,6 +322,14 @@ const TravelerDashboard = () => {
                   <MapPinned className="w-4 h-4 mr-2" />
                   {t("tracking.liveLocation")}
                 </Button>
+                <Button 
+                  variant={activeTab === "preferences" ? "secondary" : "ghost"} 
+                  className="justify-start"
+                  onClick={() => { setActiveTab("preferences"); setMobileMenuOpen(false); }}
+                >
+                  <Sliders className="w-4 h-4 mr-2" />
+                  Preferences
+                </Button>
               </div>
             </div>
           )}
@@ -345,9 +365,34 @@ const TravelerDashboard = () => {
             <TabsTrigger value="journeys">Journeys</TabsTrigger>
             <TabsTrigger value="parcels">Parcels</TabsTrigger>
             <TabsTrigger value="tracking">Tracking</TabsTrigger>
+            <TabsTrigger value="preferences">Preferences</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-8">
+            {/* Traveler Status Card - Rapido Style */}
+            <section>
+              <TravelerStatusCard
+                isOnline={isOnline}
+                currentJourney={mockJourneys.find(j => j.status === "in-transit") ? {
+                  id: mockJourneys[1].id,
+                  source: mockJourneys[1].source,
+                  destination: mockJourneys[1].destination,
+                  departureTime: mockJourneys[1].time,
+                  progress: 62,
+                  parcelsCount: mockJourneys[1].parcelsCount,
+                  earnings: mockJourneys[1].earnings
+                } : null}
+                stats={{
+                  todayEarnings: 1250,
+                  todayParcels: 3,
+                  weeklyEarnings: mockStats.thisMonthEarnings,
+                  rating: mockStats.trustScore
+                }}
+                onToggleOnline={setIsOnline}
+                onViewJourney={handleViewDetails}
+              />
+            </section>
+
             {/* Stats */}
             <section>
               <h2 className="text-lg font-semibold text-foreground mb-4">{t("dashboard.yourStats")}</h2>
@@ -447,6 +492,26 @@ const TravelerDashboard = () => {
               destinationLocation={{ lat: 25.6, lng: 85.1 }}
               isLive={true}
             />
+          </TabsContent>
+
+          <TabsContent value="preferences" className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">Delivery Preferences</h2>
+              <p className="text-sm text-muted-foreground">
+                Configure what types of parcels you can carry
+              </p>
+            </div>
+            <div className="max-w-2xl">
+              <TravelerPreferences 
+                initialData={{
+                  acceptedParcelTypes: ["documents", "electronics", "clothing", "general"],
+                  maxParcelWeight: 10,
+                  notes: "",
+                  acceptUrgent: true
+                }}
+                onSave={(data) => console.log("Preferences saved:", data)}
+              />
+            </div>
           </TabsContent>
         </Tabs>
       </main>
