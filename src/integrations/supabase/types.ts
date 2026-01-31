@@ -218,6 +218,47 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          content: string
+          created_at: string
+          delivery_id: string
+          id: string
+          is_read: boolean | null
+          message_type: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          delivery_id: string
+          id?: string
+          is_read?: boolean | null
+          message_type?: string | null
+          receiver_id: string
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          delivery_id?: string
+          id?: string
+          is_read?: boolean | null
+          message_type?: string | null
+          receiver_id?: string
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "deliveries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parcels: {
         Row: {
           budget: number | null
