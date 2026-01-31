@@ -15,7 +15,12 @@ import {
   Shirt,
   Pizza,
   Pill,
-  Box
+  Box,
+  Phone,
+  User,
+  IndianRupee,
+  AlertCircle,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +30,8 @@ import { Switch } from "@/components/ui/switch";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { transportModes, getTransportModesByCategory, TransportMode } from "@/lib/transportModes";
 import SmartModeRecommender from "./SmartModeRecommender";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const PARCEL_TYPES = [
   { id: "documents", label: "Documents", icon: FileText, color: "bg-blue-500/20 text-blue-400" },
@@ -37,39 +44,60 @@ const PARCEL_TYPES = [
 
 interface JourneyFormData {
   source: string;
+  sourceLocation: string;
   destination: string;
-  date: string;
-  time: string;
+  destinationLocation: string;
+  departureDate: string;
+  departureTime: string;
+  arrivalDate: string;
+  arrivalTime: string;
   transportMode: TransportMode;
   ticketId: string;
   vehicleNumber: string;
-  drivingLicense: string;
+  totalCapacity: number;
   availableCapacity: number;
+  pricePerKg: number;
+  maxParcelWeight: number;
   acceptedParcelTypes: string[];
   acceptUrgent: boolean;
   notes: string;
+  travelerName: string;
+  travelerPhone: string;
 }
 
 interface JourneyPostFormProps {
-  onSubmit: (data: JourneyFormData) => void;
+  onSubmit?: (data: JourneyFormData) => void;
+  onSuccess?: () => void;
 }
 
-const JourneyPostForm = ({ onSubmit }: JourneyPostFormProps) => {
+const JourneyPostForm = ({ onSubmit, onSuccess }: JourneyPostFormProps) => {
   const { t } = useLanguage();
+  const { toast } = useToast();
   const [showSmartRecommender, setShowSmartRecommender] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Partial<Record<keyof JourneyFormData, string>>>({});
+  
   const [formData, setFormData] = useState<JourneyFormData>({
     source: "",
+    sourceLocation: "",
     destination: "",
-    date: "",
-    time: "",
+    destinationLocation: "",
+    departureDate: "",
+    departureTime: "",
+    arrivalDate: "",
+    arrivalTime: "",
     transportMode: "train",
     ticketId: "",
     vehicleNumber: "",
-    drivingLicense: "",
-    availableCapacity: 5,
+    totalCapacity: 10,
+    availableCapacity: 10,
+    pricePerKg: 50,
+    maxParcelWeight: 5,
     acceptedParcelTypes: ["documents", "electronics", "clothing", "general"],
     acceptUrgent: true,
     notes: "",
+    travelerName: "",
+    travelerPhone: "",
   });
 
   const toggleParcelType = (typeId: string) => {
@@ -81,9 +109,156 @@ const JourneyPostForm = ({ onSubmit }: JourneyPostFormProps) => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validateForm = (): boolean => {
+    const newErrors: Partial<Record<keyof JourneyFormData, string>> = {};
+    
+    if (!formData.travelerName.trim()) {
+      newErrors.travelerName = "Your name is required";
+    }
+    if (!formData.travelerPhone.trim() || !/^[6-9]\d{9}$/.test(formData.travelerPhone.replace(/\D/g, ""))) {
+      newErrors.travelerPhone = "Valid 10-digit phone number required";
+    }
+    if (!formData.source.trim()) {
+      newErrors.source = "Source city is required";
+    }
+    if (!formData.sourceLocation.trim()) {
+      newErrors.sourceLocation = "Pickup location is required";
+    }
+    if (!formData.destination.trim()) {
+      newErrors.destination = "Destination city is required";
+    }
+    if (!formData.destinationLocation.trim()) {
+      newErrors.destinationLocation = "Drop location is required";
+    }
+    if (!formData.departureDate) {
+      newErrors.departureDate = "Departure date is required";
+    }
+    if (!formData.departureTime) {
+      newErrors.departureTime = "Departure time is required";
+    }
+    if (!formData.arrivalDate) {
+      newErrors.arrivalDate = "Arrival date is required";
+    }
+    if (!formData.arrivalTime) {
+      newErrors.arrivalTime = "Arrival time is required";
+    }
+    
+    // Validate ticket/vehicle based on mode
+    const needsTicket = formData.transportMode === "flight" || formData.transportMode === "train";
+    const needsVehicle = formData.transportMode === "car" || formData.transportMode === "bike" || formData.transportMode === "truck";
+    
+    if (needsTicket && !formData.ticketId.trim()) {
+      newErrors.ticketId = "PNR/Ticket ID is required for verification";
+    }
+    if (needsVehicle && !formData.vehicleNumber.trim()) {
+      newErrors.vehicleNumber = "Vehicle number is required";
+    }
+    
+    if (formData.acceptedParcelTypes.length === 0) {
+      toast({
+        title: "Select parcel types",
+        description: "Please select at least one type of parcel you can carry",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    if (!validateForm()) {
+      toast({
+        title: "Please fill all required fields",
+        description: "Check the form for missing information",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Login required",
+          description: "Please login to post your travel plan",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Insert journey into database
+      const { error } = await supabase.from("journeys").insert({
+        user_id: user.id,
+        source_city: formData.source,
+        source_location: formData.sourceLocation,
+        destination_city: formData.destination,
+        destination_location: formData.destinationLocation,
+        departure_date: formData.departureDate,
+        departure_time: formData.departureTime,
+        arrival_date: formData.arrivalDate,
+        arrival_time: formData.arrivalTime,
+        transport_mode: formData.transportMode,
+        pnr_number: formData.ticketId || null,
+        vehicle_number: formData.vehicleNumber || null,
+        total_capacity: formData.totalCapacity,
+        available_capacity: formData.availableCapacity,
+        price_per_kg: formData.pricePerKg,
+        max_parcel_weight: formData.maxParcelWeight,
+        accepted_parcel_types: formData.acceptedParcelTypes,
+        notes: formData.notes || null,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Journey posted successfully! 🎉",
+        description: "Senders can now find and contact you for deliveries",
+      });
+
+      // Reset form
+      setFormData({
+        source: "",
+        sourceLocation: "",
+        destination: "",
+        destinationLocation: "",
+        departureDate: "",
+        departureTime: "",
+        arrivalDate: "",
+        arrivalTime: "",
+        transportMode: "train",
+        ticketId: "",
+        vehicleNumber: "",
+        totalCapacity: 10,
+        availableCapacity: 10,
+        pricePerKg: 50,
+        maxParcelWeight: 5,
+        acceptedParcelTypes: ["documents", "electronics", "clothing", "general"],
+        acceptUrgent: true,
+        notes: "",
+        travelerName: "",
+        travelerPhone: "",
+      });
+
+      onSubmit?.(formData);
+      onSuccess?.();
+    } catch (error: any) {
+      console.error("Error posting journey:", error);
+      toast({
+        title: "Failed to post journey",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleModeSelect = (modeId: string) => {
@@ -194,11 +369,66 @@ const JourneyPostForm = ({ onSubmit }: JourneyPostFormProps) => {
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Traveler Details Section */}
+        <div className="p-4 rounded-xl bg-accent/5 border border-accent/20 space-y-4">
+          <div className="flex items-center gap-2 text-accent">
+            <User className="h-4 w-4" />
+            <Label className="text-sm font-medium">Your Contact Details</Label>
+            <span className="text-xs text-muted-foreground ml-auto">Required for senders to contact you</span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="travelerName" className="text-sm text-muted-foreground">
+                Full Name *
+              </Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="travelerName"
+                  placeholder="Enter your full name"
+                  value={formData.travelerName}
+                  onChange={(e) => setFormData({ ...formData, travelerName: e.target.value })}
+                  className={`pl-10 bg-secondary/50 border-border/50 focus:border-primary ${errors.travelerName ? "border-destructive" : ""}`}
+                  required
+                />
+              </div>
+              {errors.travelerName && (
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> {errors.travelerName}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="travelerPhone" className="text-sm text-muted-foreground">
+                Phone Number *
+              </Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="travelerPhone"
+                  placeholder="10-digit mobile number"
+                  value={formData.travelerPhone}
+                  onChange={(e) => setFormData({ ...formData, travelerPhone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                  className={`pl-10 bg-secondary/50 border-border/50 focus:border-primary ${errors.travelerPhone ? "border-destructive" : ""}`}
+                  required
+                />
+              </div>
+              {errors.travelerPhone && (
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> {errors.travelerPhone}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Source */}
+          {/* Source City */}
           <div className="space-y-2">
             <Label htmlFor="source" className="text-sm text-muted-foreground">
-              {t("journey.from")}
+              {t("journey.from")} City *
             </Label>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -207,16 +437,34 @@ const JourneyPostForm = ({ onSubmit }: JourneyPostFormProps) => {
                 placeholder={t("journey.sourceCity")}
                 value={formData.source}
                 onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
+                className={`pl-10 bg-secondary/50 border-border/50 focus:border-primary ${errors.source ? "border-destructive" : ""}`}
                 required
               />
             </div>
           </div>
 
-          {/* Destination */}
+          {/* Source Location */}
+          <div className="space-y-2">
+            <Label htmlFor="sourceLocation" className="text-sm text-muted-foreground">
+              Pickup Location *
+            </Label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                id="sourceLocation"
+                placeholder="Station/Airport/Address"
+                value={formData.sourceLocation}
+                onChange={(e) => setFormData({ ...formData, sourceLocation: e.target.value })}
+                className={`pl-10 bg-secondary/50 border-border/50 focus:border-primary ${errors.sourceLocation ? "border-destructive" : ""}`}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Destination City */}
           <div className="space-y-2">
             <Label htmlFor="destination" className="text-sm text-muted-foreground">
-              {t("journey.to")}
+              {t("journey.to")} City *
             </Label>
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
@@ -225,43 +473,99 @@ const JourneyPostForm = ({ onSubmit }: JourneyPostFormProps) => {
                 placeholder={t("journey.destinationCity")}
                 value={formData.destination}
                 onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
-                className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
+                className={`pl-10 bg-secondary/50 border-border/50 focus:border-primary ${errors.destination ? "border-destructive" : ""}`}
                 required
               />
             </div>
           </div>
 
-          {/* Date */}
+          {/* Destination Location */}
           <div className="space-y-2">
-            <Label htmlFor="date" className="text-sm text-muted-foreground">
-              {t("journey.travelDate")}
+            <Label htmlFor="destinationLocation" className="text-sm text-muted-foreground">
+              Drop Location *
+            </Label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+              <Input
+                id="destinationLocation"
+                placeholder="Station/Airport/Address"
+                value={formData.destinationLocation}
+                onChange={(e) => setFormData({ ...formData, destinationLocation: e.target.value })}
+                className={`pl-10 bg-secondary/50 border-border/50 focus:border-primary ${errors.destinationLocation ? "border-destructive" : ""}`}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Departure Date */}
+          <div className="space-y-2">
+            <Label htmlFor="departureDate" className="text-sm text-muted-foreground">
+              Departure Date *
             </Label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                id="date"
+                id="departureDate"
                 type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
+                value={formData.departureDate}
+                min={new Date().toISOString().split("T")[0]}
+                onChange={(e) => setFormData({ ...formData, departureDate: e.target.value })}
+                className={`pl-10 bg-secondary/50 border-border/50 focus:border-primary ${errors.departureDate ? "border-destructive" : ""}`}
                 required
               />
             </div>
           </div>
 
-          {/* Time */}
+          {/* Departure Time */}
           <div className="space-y-2">
-            <Label htmlFor="time" className="text-sm text-muted-foreground">
-              {t("journey.departureTime")}
+            <Label htmlFor="departureTime" className="text-sm text-muted-foreground">
+              {t("journey.departureTime")} *
             </Label>
             <div className="relative">
               <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                id="time"
+                id="departureTime"
                 type="time"
-                value={formData.time}
-                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
+                value={formData.departureTime}
+                onChange={(e) => setFormData({ ...formData, departureTime: e.target.value })}
+                className={`pl-10 bg-secondary/50 border-border/50 focus:border-primary ${errors.departureTime ? "border-destructive" : ""}`}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Arrival Date */}
+          <div className="space-y-2">
+            <Label htmlFor="arrivalDate" className="text-sm text-muted-foreground">
+              Arrival Date *
+            </Label>
+            <div className="relative">
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+              <Input
+                id="arrivalDate"
+                type="date"
+                value={formData.arrivalDate}
+                min={formData.departureDate || new Date().toISOString().split("T")[0]}
+                onChange={(e) => setFormData({ ...formData, arrivalDate: e.target.value })}
+                className={`pl-10 bg-secondary/50 border-border/50 focus:border-primary ${errors.arrivalDate ? "border-destructive" : ""}`}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Arrival Time */}
+          <div className="space-y-2">
+            <Label htmlFor="arrivalTime" className="text-sm text-muted-foreground">
+              Arrival Time *
+            </Label>
+            <div className="relative">
+              <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+              <Input
+                id="arrivalTime"
+                type="time"
+                value={formData.arrivalTime}
+                onChange={(e) => setFormData({ ...formData, arrivalTime: e.target.value })}
+                className={`pl-10 bg-secondary/50 border-border/50 focus:border-primary ${errors.arrivalTime ? "border-destructive" : ""}`}
                 required
               />
             </div>
@@ -269,67 +573,51 @@ const JourneyPostForm = ({ onSubmit }: JourneyPostFormProps) => {
 
           {/* Ticket ID - for Flight/Train */}
           {needsTicketId && (
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <Label htmlFor="ticketId" className="text-sm text-muted-foreground">
-                {t("journey.ticketId")}
+                PNR / Ticket ID * (for verification)
               </Label>
               <div className="relative">
                 <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   id="ticketId"
-                  placeholder={t("journey.forVerification")}
+                  placeholder={formData.transportMode === "train" ? "10-digit PNR number" : "Booking reference"}
                   value={formData.ticketId}
-                  onChange={(e) => setFormData({ ...formData, ticketId: e.target.value })}
-                  className="pl-10 bg-secondary/50 border-border/50 focus:border-primary font-mono"
+                  onChange={(e) => setFormData({ ...formData, ticketId: e.target.value.toUpperCase() })}
+                  className={`pl-10 bg-secondary/50 border-border/50 focus:border-primary font-mono ${errors.ticketId ? "border-destructive" : ""}`}
+                  required
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This helps verify your journey and builds trust with senders
+              </p>
+            </div>
+          )}
+
+          {/* Vehicle Number - for Car/Bike/Truck */}
+          {needsVehicleInfo && (
+            <div className="space-y-2 md:col-span-2">
+              <Label htmlFor="vehicleNumber" className="text-sm text-muted-foreground">
+                Vehicle Number *
+              </Label>
+              <div className="relative">
+                <CarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="vehicleNumber"
+                  placeholder="MH 12 AB 1234"
+                  value={formData.vehicleNumber}
+                  onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value.toUpperCase() })}
+                  className={`pl-10 bg-secondary/50 border-border/50 focus:border-primary font-mono uppercase ${errors.vehicleNumber ? "border-destructive" : ""}`}
                   required
                 />
               </div>
             </div>
           )}
 
-          {/* Vehicle Number - for Car/Bike/Truck */}
-          {needsVehicleInfo && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="vehicleNumber" className="text-sm text-muted-foreground">
-                  {t("journey.vehicleNumber")}
-                </Label>
-                <div className="relative">
-                  <CarIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="vehicleNumber"
-                    placeholder="MH 12 AB 1234"
-                    value={formData.vehicleNumber}
-                    onChange={(e) => setFormData({ ...formData, vehicleNumber: e.target.value.toUpperCase() })}
-                    className="pl-10 bg-secondary/50 border-border/50 focus:border-primary font-mono uppercase"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="drivingLicense" className="text-sm text-muted-foreground">
-                  {t("journey.drivingLicense")}
-                </Label>
-                <div className="relative">
-                  <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    id="drivingLicense"
-                    placeholder="DL-1234567890123"
-                    value={formData.drivingLicense}
-                    onChange={(e) => setFormData({ ...formData, drivingLicense: e.target.value.toUpperCase() })}
-                    className="pl-10 bg-secondary/50 border-border/50 focus:border-primary font-mono uppercase"
-                    required
-                  />
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* Available Capacity */}
-          <div className="space-y-2 md:col-span-2">
+          {/* Capacity & Pricing */}
+          <div className="space-y-2">
             <Label htmlFor="capacity" className="text-sm text-muted-foreground">
-              {t("journey.availableCapacity")}
+              Available Capacity (kg) *
             </Label>
             <div className="relative">
               <Weight className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -339,18 +627,41 @@ const JourneyPostForm = ({ onSubmit }: JourneyPostFormProps) => {
                 min="1"
                 max={selectedMode?.maxCapacity || 20}
                 value={formData.availableCapacity}
-                onChange={(e) => setFormData({ ...formData, availableCapacity: Number(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, availableCapacity: Number(e.target.value), totalCapacity: Number(e.target.value) })}
                 className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
                 required
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              {t("journey.maxCapacity").replace("20", String(selectedMode?.maxCapacity || 20))}
+              Max {selectedMode?.maxCapacity || 20}kg for {selectedMode?.id || "this mode"}
+            </p>
+          </div>
+
+          {/* Price per KG */}
+          <div className="space-y-2">
+            <Label htmlFor="pricePerKg" className="text-sm text-muted-foreground">
+              Price per KG (₹) *
+            </Label>
+            <div className="relative">
+              <IndianRupee className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                id="pricePerKg"
+                type="number"
+                min="10"
+                max="500"
+                value={formData.pricePerKg}
+                onChange={(e) => setFormData({ ...formData, pricePerKg: Number(e.target.value) })}
+                className="pl-10 bg-secondary/50 border-border/50 focus:border-primary"
+                required
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Suggested: ₹30-100/kg based on distance
             </p>
           </div>
         </div>
 
-        {/* Parcel Type Preferences - Rapido Style */}
+        {/* Parcel Type Preferences */}
         <div className="space-y-4 p-4 rounded-xl bg-primary/5 border border-primary/10">
           <div className="flex items-center justify-between">
             <Label className="text-sm font-medium flex items-center gap-2">
@@ -404,7 +715,7 @@ const JourneyPostForm = ({ onSubmit }: JourneyPostFormProps) => {
           <div className="space-y-2">
             <Label className="text-xs text-muted-foreground">Special Instructions (Optional)</Label>
             <Textarea
-              placeholder="E.g., I have secure storage, can handle fragile items..."
+              placeholder="E.g., I have secure storage, can handle fragile items, preferred pickup times..."
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               className="bg-background/50 border-border/50 min-h-[60px] text-sm"
@@ -412,9 +723,24 @@ const JourneyPostForm = ({ onSubmit }: JourneyPostFormProps) => {
           </div>
         </div>
 
-        <Button type="submit" variant="hero" size="lg" className="w-full md:w-auto">
-          <Plus className="w-4 h-4" />
-          {t("journey.postJourney")}
+        <Button 
+          type="submit" 
+          variant="hero" 
+          size="lg" 
+          className="w-full md:w-auto"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Posting...
+            </>
+          ) : (
+            <>
+              <Plus className="w-4 h-4" />
+              {t("journey.postJourney")}
+            </>
+          )}
         </Button>
       </form>
     </div>
