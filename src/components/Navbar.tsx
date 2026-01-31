@@ -6,6 +6,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSelector from "@/components/LanguageSelector";
 import { supabase } from "@/integrations/supabase/client";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import saarthiLogo from "@/assets/saarthi-logo.png";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,10 +37,11 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-gold flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">स</span>
-            </div>
-            <span className="font-semibold text-lg tracking-tight text-foreground">SAARTHI</span>
+            <img 
+              src={saarthiLogo} 
+              alt="SAARTHI" 
+              className="h-10 w-auto object-contain"
+            />
           </div>
 
           {/* Desktop Nav */}

@@ -1,13 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
   Package, MapPin, Clock, User, MessageSquare, 
-  Phone, CheckCircle2, Plane, Train, Car, Eye, Star
+  Phone, CheckCircle2, Plane, Train, Car, Eye, Star, IndianRupee
 } from "lucide-react";
-
+import OTPVerificationModal from "@/components/otp/OTPVerificationModal";
+import PaymentModal from "@/components/payment/PaymentModal";
+import ContactModal from "@/components/communication/ContactModal";
 const mockParcels = [
   {
     id: "1",
@@ -78,7 +81,25 @@ const statusColors: Record<string, string> = {
 };
 
 const ActiveParcels = () => {
+  const navigate = useNavigate();
   const [expandedParcel, setExpandedParcel] = useState<string | null>("1");
+  const [otpModal, setOtpModal] = useState<{
+    open: boolean;
+    type: "pickup" | "delivery";
+    parcelId: string;
+  } | null>(null);
+  const [paymentModal, setPaymentModal] = useState<{
+    open: boolean;
+    parcelId: string;
+  } | null>(null);
+  const [contactModal, setContactModal] = useState<{
+    open: boolean;
+    mode: "call" | "message";
+    parcelId: string;
+  } | null>(null);
+
+  const getActiveParcel = () => mockParcels.find((p) => p.id === (otpModal?.parcelId || paymentModal?.parcelId || contactModal?.parcelId));
+  const activeParcel = getActiveParcel();
 
   return (
     <Card className="card-glass border-border/30">
@@ -159,10 +180,18 @@ const ActiveParcels = () => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setContactModal({ open: true, mode: "message", parcelId: parcel.id })}
+                    >
                       <MessageSquare className="h-4 w-4" />
                     </Button>
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => setContactModal({ open: true, mode: "call", parcelId: parcel.id })}
+                    >
                       <Phone className="h-4 w-4" />
                     </Button>
                   </div>
@@ -170,14 +199,22 @@ const ActiveParcels = () => {
 
                 {/* OTP Section */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 rounded-xl bg-success/10 border border-success/30 text-center">
+                  <button 
+                    className="p-3 rounded-xl bg-success/10 border border-success/30 text-center hover:bg-success/20 transition-colors cursor-pointer"
+                    onClick={() => setOtpModal({ open: true, type: "pickup", parcelId: parcel.id })}
+                  >
                     <p className="text-xs text-muted-foreground mb-1">Pickup OTP</p>
                     <p className="text-xl font-mono font-bold text-success">{parcel.pickupOtp}</p>
-                  </div>
-                  <div className="p-3 rounded-xl bg-accent/10 border border-accent/30 text-center">
+                    <p className="text-xs text-success mt-1">Tap to verify</p>
+                  </button>
+                  <button 
+                    className="p-3 rounded-xl bg-accent/10 border border-accent/30 text-center hover:bg-accent/20 transition-colors cursor-pointer"
+                    onClick={() => setOtpModal({ open: true, type: "delivery", parcelId: parcel.id })}
+                  >
                     <p className="text-xs text-muted-foreground mb-1">Delivery OTP</p>
                     <p className="text-xl font-mono font-bold text-accent">{parcel.deliveryOtp}</p>
-                  </div>
+                    <p className="text-xs text-accent mt-1">Tap to verify</p>
+                  </button>
                 </div>
 
                 {/* Timeline */}
@@ -211,15 +248,31 @@ const ActiveParcels = () => {
                   </div>
                 </div>
 
-                {/* Details */}
-                <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 text-sm">
-                  <div className="flex items-center gap-4">
-                    <span className="text-muted-foreground">Weight: <strong>{parcel.weight} kg</strong></span>
-                    <span className="text-muted-foreground">Price: <strong className="text-primary">₹{parcel.price}</strong></span>
+                {/* Details & Actions */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 text-sm">
+                    <div className="flex items-center gap-4">
+                      <span className="text-muted-foreground">Weight: <strong>{parcel.weight} kg</strong></span>
+                      <span className="text-muted-foreground">Price: <strong className="text-primary">₹{parcel.price}</strong></span>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => navigate("/tracking")}
+                    >
+                      <Eye className="h-4 w-4 mr-1" />
+                      Track Live
+                    </Button>
                   </div>
-                  <Button size="sm" variant="outline">
-                    <Eye className="h-4 w-4 mr-1" />
-                    Track Live
+                  
+                  {/* Payment Button */}
+                  <Button
+                    variant="hero"
+                    className="w-full"
+                    onClick={() => setPaymentModal({ open: true, parcelId: parcel.id })}
+                  >
+                    <IndianRupee className="h-4 w-4 mr-1" />
+                    Pay ₹{parcel.price} to Confirm Delivery
                   </Button>
                 </div>
               </div>
@@ -237,6 +290,51 @@ const ActiveParcels = () => {
           </div>
         )}
       </CardContent>
+
+      {/* OTP Verification Modal */}
+      {otpModal && activeParcel && (
+        <OTPVerificationModal
+          open={otpModal.open}
+          onOpenChange={(open) => !open && setOtpModal(null)}
+          type={otpModal.type}
+          parcelTitle={activeParcel.title}
+          expectedOTP={otpModal.type === "pickup" ? activeParcel.pickupOtp : activeParcel.deliveryOtp}
+          travelerName={activeParcel.traveler.name}
+          onVerified={() => {
+            console.log(`${otpModal.type} verified for parcel ${otpModal.parcelId}`);
+          }}
+        />
+      )}
+
+      {/* Payment Modal */}
+      {paymentModal && activeParcel && (
+        <PaymentModal
+          open={paymentModal.open}
+          onOpenChange={(open) => !open && setPaymentModal(null)}
+          amount={activeParcel.price}
+          parcelTitle={activeParcel.title}
+          travelerName={activeParcel.traveler.name}
+          onPaymentSuccess={(transactionId) => {
+            console.log(`Payment successful: ${transactionId}`);
+          }}
+        />
+      )}
+
+      {/* Contact Modal */}
+      {contactModal && activeParcel && (
+        <ContactModal
+          open={contactModal.open}
+          onOpenChange={(open) => !open && setContactModal(null)}
+          mode={contactModal.mode}
+          contact={{
+            name: activeParcel.traveler.name,
+            initials: activeParcel.traveler.avatar,
+            phone: activeParcel.traveler.phone,
+            trustScore: activeParcel.traveler.trustScore,
+            verified: true,
+          }}
+        />
+      )}
     </Card>
   );
 };
