@@ -4,72 +4,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { 
-  Package, MapPin, Clock, User, MessageSquare, 
-  Phone, CheckCircle2, Plane, Train, Car, Eye, Star, IndianRupee
+  Package, Clock, MessageSquare, 
+  Phone, CheckCircle2, Plane, Train, Car, Eye, Star, IndianRupee,
+  Bike, Bus, Truck
 } from "lucide-react";
 import OTPVerificationModal from "@/components/otp/OTPVerificationModal";
 import PaymentModal from "@/components/payment/PaymentModal";
 import ContactModal from "@/components/communication/ContactModal";
-const mockParcels = [
-  {
-    id: "1",
-    title: "Birthday Gift for Mom",
-    status: "in-transit",
-    traveler: {
-      name: "Rahul Sharma",
-      avatar: "RS",
-      phone: "+91 98765 43210",
-      trustScore: 92,
-    },
-    route: { from: "Delhi", to: "Mumbai" },
-    transport: "train",
-    progress: 65,
-    eta: "4 hours",
-    weight: 2.5,
-    price: 300,
-    pickupOtp: "4521",
-    deliveryOtp: "8734",
-    timeline: [
-      { status: "Posted", time: "Jan 28, 10:00 AM", completed: true },
-      { status: "Matched", time: "Jan 28, 11:30 AM", completed: true },
-      { status: "Picked Up", time: "Jan 29, 06:15 AM", completed: true },
-      { status: "In Transit", time: "In Progress", completed: false },
-      { status: "Delivered", time: "Pending", completed: false },
-    ],
-  },
-  {
-    id: "2",
-    title: "Important Documents",
-    status: "picked-up",
-    traveler: {
-      name: "Priya Patel",
-      avatar: "PP",
-      phone: "+91 87654 32109",
-      trustScore: 88,
-    },
-    route: { from: "Delhi", to: "Bangalore" },
-    transport: "flight",
-    progress: 35,
-    eta: "6 hours",
-    weight: 0.5,
-    price: 450,
-    pickupOtp: "2847",
-    deliveryOtp: "9156",
-    timeline: [
-      { status: "Posted", time: "Jan 29, 08:00 AM", completed: true },
-      { status: "Matched", time: "Jan 29, 09:00 AM", completed: true },
-      { status: "Picked Up", time: "Jan 30, 07:30 AM", completed: true },
-      { status: "In Transit", time: "Pending", completed: false },
-      { status: "Delivered", time: "Pending", completed: false },
-    ],
-  },
-];
+import { useSenderData, SenderParcel } from "@/hooks/useSenderData";
 
 const transportIcons: Record<string, React.ReactNode> = {
   flight: <Plane className="h-4 w-4" />,
   train: <Train className="h-4 w-4" />,
   car: <Car className="h-4 w-4" />,
+  bike: <Bike className="h-4 w-4" />,
+  bus: <Bus className="h-4 w-4" />,
+  truck: <Truck className="h-4 w-4" />,
 };
 
 const statusColors: Record<string, string> = {
@@ -80,9 +32,23 @@ const statusColors: Record<string, string> = {
   delivered: "bg-success/20 text-success border-success/30",
 };
 
-const ActiveParcels = () => {
+interface ActiveParcelsProps {
+  parcels?: SenderParcel[];
+  isLoading?: boolean;
+}
+
+const ActiveParcels = ({ parcels: propParcels, isLoading: propLoading }: ActiveParcelsProps = {}) => {
   const navigate = useNavigate();
-  const [expandedParcel, setExpandedParcel] = useState<string | null>("1");
+  const { parcels: hookParcels, isLoading: hookLoading } = useSenderData();
+  
+  // Use props if provided, otherwise use hook data
+  const parcels = propParcels !== undefined ? propParcels : hookParcels;
+  const isLoading = propLoading !== undefined ? propLoading : hookLoading;
+  
+  // Filter to only show active parcels (not delivered)
+  const activeParcels = parcels.filter(p => p.status !== "delivered");
+  
+  const [expandedParcel, setExpandedParcel] = useState<string | null>(activeParcels[0]?.id || null);
   const [otpModal, setOtpModal] = useState<{
     open: boolean;
     type: "pickup" | "delivery";
@@ -98,8 +64,38 @@ const ActiveParcels = () => {
     parcelId: string;
   } | null>(null);
 
-  const getActiveParcel = () => mockParcels.find((p) => p.id === (otpModal?.parcelId || paymentModal?.parcelId || contactModal?.parcelId));
+  const getActiveParcel = () => parcels.find((p) => p.id === (otpModal?.parcelId || paymentModal?.parcelId || contactModal?.parcelId));
   const activeParcel = getActiveParcel();
+
+  if (isLoading) {
+    return (
+      <Card className="card-glass border-border/30">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-3 text-xl">
+            <div className="p-2 rounded-xl bg-primary/20">
+              <Package className="h-5 w-5 text-primary" />
+            </div>
+            Active Parcels
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {[1, 2].map((i) => (
+            <div key={i} className="p-4 rounded-2xl border border-border/50 bg-secondary/20">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-10 w-10 rounded-xl" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+                <Skeleton className="h-6 w-20 rounded-full" />
+              </div>
+              <Skeleton className="h-2 w-full mt-4" />
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="card-glass border-border/30">
@@ -110,13 +106,13 @@ const ActiveParcels = () => {
           </div>
           Active Parcels
           <Badge variant="outline" className="ml-auto">
-            {mockParcels.length} active
+            {activeParcels.length} active
           </Badge>
         </CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {mockParcels.map((parcel) => (
+        {activeParcels.map((parcel) => (
           <div
             key={parcel.id}
             className={`p-4 rounded-2xl border transition-all ${
@@ -137,7 +133,7 @@ const ActiveParcels = () => {
                 <div>
                   <h4 className="font-semibold">{parcel.title}</h4>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    {transportIcons[parcel.transport]}
+                    {parcel.transport && transportIcons[parcel.transport]}
                     <span>{parcel.route.from} → {parcel.route.to}</span>
                   </div>
                 </div>
@@ -151,10 +147,12 @@ const ActiveParcels = () => {
             <div className="mt-4">
               <div className="flex justify-between text-xs text-muted-foreground mb-1">
                 <span>Journey Progress</span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  ETA: {parcel.eta}
-                </span>
+                {parcel.eta && (
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    ETA: {parcel.eta}
+                  </span>
+                )}
               </div>
               <Progress value={parcel.progress} className="h-2" />
             </div>
@@ -163,59 +161,67 @@ const ActiveParcels = () => {
             {expandedParcel === parcel.id && (
               <div className="mt-4 pt-4 border-t border-border/30 space-y-4">
                 {/* Traveler Info */}
-                <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/30">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-sm font-semibold text-primary-foreground">
-                      {parcel.traveler.avatar}
+                {parcel.traveler ? (
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/30">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-sm font-semibold text-primary-foreground">
+                        {parcel.traveler.avatar}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{parcel.traveler.name}</span>
+                          {parcel.traveler.verified && <CheckCircle2 className="h-4 w-4 text-success" />}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Star className="h-3 w-3 text-primary fill-primary" />
+                          <span>{(parcel.traveler.trustScore * 20).toFixed(0)}% Trust</span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{parcel.traveler.name}</span>
-                        <CheckCircle2 className="h-4 w-4 text-success" />
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Star className="h-3 w-3 text-primary fill-primary" />
-                        <span>{parcel.traveler.trustScore}% Trust</span>
-                      </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => setContactModal({ open: true, mode: "message", parcelId: parcel.id })}
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => setContactModal({ open: true, mode: "call", parcelId: parcel.id })}
+                      >
+                        <Phone className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setContactModal({ open: true, mode: "message", parcelId: parcel.id })}
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => setContactModal({ open: true, mode: "call", parcelId: parcel.id })}
-                    >
-                      <Phone className="h-4 w-4" />
-                    </Button>
+                ) : (
+                  <div className="p-3 rounded-xl bg-secondary/30 text-center">
+                    <p className="text-sm text-muted-foreground">Waiting for a Saarthi to accept your parcel...</p>
                   </div>
-                </div>
+                )}
 
-                {/* OTP Section */}
-                <div className="grid grid-cols-2 gap-3">
-                  <button 
-                    className="p-3 rounded-xl bg-success/10 border border-success/30 text-center hover:bg-success/20 transition-colors cursor-pointer"
-                    onClick={() => setOtpModal({ open: true, type: "pickup", parcelId: parcel.id })}
-                  >
-                    <p className="text-xs text-muted-foreground mb-1">Pickup OTP</p>
-                    <p className="text-xl font-mono font-bold text-success">{parcel.pickupOtp}</p>
-                    <p className="text-xs text-success mt-1">Tap to verify</p>
-                  </button>
-                  <button 
-                    className="p-3 rounded-xl bg-accent/10 border border-accent/30 text-center hover:bg-accent/20 transition-colors cursor-pointer"
-                    onClick={() => setOtpModal({ open: true, type: "delivery", parcelId: parcel.id })}
-                  >
-                    <p className="text-xs text-muted-foreground mb-1">Delivery OTP</p>
-                    <p className="text-xl font-mono font-bold text-accent">{parcel.deliveryOtp}</p>
-                    <p className="text-xs text-accent mt-1">Tap to verify</p>
-                  </button>
-                </div>
+                {/* OTP Section - only show if matched */}
+                {parcel.traveler && parcel.pickupOtp && parcel.deliveryOtp && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <button 
+                      className="p-3 rounded-xl bg-success/10 border border-success/30 text-center hover:bg-success/20 transition-colors cursor-pointer"
+                      onClick={() => setOtpModal({ open: true, type: "pickup", parcelId: parcel.id })}
+                    >
+                      <p className="text-xs text-muted-foreground mb-1">Pickup OTP</p>
+                      <p className="text-xl font-mono font-bold text-success">{parcel.pickupOtp}</p>
+                      <p className="text-xs text-success mt-1">Tap to verify</p>
+                    </button>
+                    <button 
+                      className="p-3 rounded-xl bg-accent/10 border border-accent/30 text-center hover:bg-accent/20 transition-colors cursor-pointer"
+                      onClick={() => setOtpModal({ open: true, type: "delivery", parcelId: parcel.id })}
+                    >
+                      <p className="text-xs text-muted-foreground mb-1">Delivery OTP</p>
+                      <p className="text-xl font-mono font-bold text-accent">{parcel.deliveryOtp}</p>
+                      <p className="text-xs text-accent mt-1">Tap to verify</p>
+                    </button>
+                  </div>
+                )}
 
                 {/* Timeline */}
                 <div className="space-y-2">
@@ -253,7 +259,9 @@ const ActiveParcels = () => {
                   <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 text-sm">
                     <div className="flex items-center gap-4">
                       <span className="text-muted-foreground">Weight: <strong>{parcel.weight} kg</strong></span>
-                      <span className="text-muted-foreground">Price: <strong className="text-primary">₹{parcel.price}</strong></span>
+                      {parcel.price && (
+                        <span className="text-muted-foreground">Price: <strong className="text-primary">₹{parcel.price}</strong></span>
+                      )}
                     </div>
                     <Button 
                       size="sm" 
@@ -265,22 +273,24 @@ const ActiveParcels = () => {
                     </Button>
                   </div>
                   
-                  {/* Payment Button */}
-                  <Button
-                    variant="hero"
-                    className="w-full"
-                    onClick={() => setPaymentModal({ open: true, parcelId: parcel.id })}
-                  >
-                    <IndianRupee className="h-4 w-4 mr-1" />
-                    Pay ₹{parcel.price} to Confirm Delivery
-                  </Button>
+                  {/* Payment Button - only for matched parcels */}
+                  {parcel.traveler && parcel.price && parcel.status !== "delivered" && (
+                    <Button
+                      variant="hero"
+                      className="w-full"
+                      onClick={() => setPaymentModal({ open: true, parcelId: parcel.id })}
+                    >
+                      <IndianRupee className="h-4 w-4 mr-1" />
+                      Pay ₹{parcel.price} to Confirm Delivery
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
           </div>
         ))}
 
-        {mockParcels.length === 0 && (
+        {activeParcels.length === 0 && (
           <div className="text-center py-12">
             <Package className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
             <h3 className="text-lg font-medium mb-2">No active parcels</h3>
@@ -292,13 +302,13 @@ const ActiveParcels = () => {
       </CardContent>
 
       {/* OTP Verification Modal */}
-      {otpModal && activeParcel && (
+      {otpModal && activeParcel && activeParcel.traveler && (
         <OTPVerificationModal
           open={otpModal.open}
           onOpenChange={(open) => !open && setOtpModal(null)}
           type={otpModal.type}
           parcelTitle={activeParcel.title}
-          expectedOTP={otpModal.type === "pickup" ? activeParcel.pickupOtp : activeParcel.deliveryOtp}
+          expectedOTP={otpModal.type === "pickup" ? (activeParcel.pickupOtp || "") : (activeParcel.deliveryOtp || "")}
           travelerName={activeParcel.traveler.name}
           onVerified={() => {
             console.log(`${otpModal.type} verified for parcel ${otpModal.parcelId}`);
@@ -307,11 +317,11 @@ const ActiveParcels = () => {
       )}
 
       {/* Payment Modal */}
-      {paymentModal && activeParcel && (
+      {paymentModal && activeParcel && activeParcel.traveler && (
         <PaymentModal
           open={paymentModal.open}
           onOpenChange={(open) => !open && setPaymentModal(null)}
-          amount={activeParcel.price}
+          amount={activeParcel.price || 0}
           parcelTitle={activeParcel.title}
           travelerName={activeParcel.traveler.name}
           onPaymentSuccess={(transactionId) => {
@@ -321,7 +331,7 @@ const ActiveParcels = () => {
       )}
 
       {/* Contact Modal */}
-      {contactModal && activeParcel && (
+      {contactModal && activeParcel && activeParcel.traveler && (
         <ContactModal
           open={contactModal.open}
           onOpenChange={(open) => !open && setContactModal(null)}
@@ -329,9 +339,9 @@ const ActiveParcels = () => {
           contact={{
             name: activeParcel.traveler.name,
             initials: activeParcel.traveler.avatar,
-            phone: activeParcel.traveler.phone,
-            trustScore: activeParcel.traveler.trustScore,
-            verified: true,
+            phone: activeParcel.traveler.phone || "",
+            trustScore: activeParcel.traveler.trustScore * 20,
+            verified: activeParcel.traveler.verified,
           }}
         />
       )}
