@@ -81,16 +81,6 @@ const HeroSection = () => {
             </Button>
           </div>
 
-          {/* Stats */}
-          <div 
-            className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto animate-fade-in"
-            style={{ animationDelay: "400ms" }}
-          >
-            <StatCard value="50K+" label="Verified Travelers" />
-            <StatCard value="₹40L+" label="Saved by Users" />
-            <StatCard value="99.2%" label="Safe Deliveries" />
-            <StatCard value="4.9★" label="Trust Rating" />
-          </div>
         </div>
       </div>
 
@@ -104,15 +94,5 @@ const HeroSection = () => {
   );
 };
 
-const StatCard = ({ value, label }: { value: string; label: string }) => (
-  <div className="text-center">
-    <div className="font-mono text-2xl md:text-3xl font-bold text-primary mb-1">
-      {value}
-    </div>
-    <div className="text-xs text-muted-foreground uppercase tracking-wider">
-      {label}
-    </div>
-  </div>
-);
 
 export default HeroSection;

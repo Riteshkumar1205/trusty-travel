@@ -41,19 +41,20 @@ import BottomNav from "@/components/layout/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
 import { useTravelerData } from "@/hooks/useTravelerData";
 
-// Default stats for fallback
+// Enhanced stats for demo
 const defaultStats = {
-  totalEarnings: 0,
-  thisMonthEarnings: 0,
-  thisWeekEarnings: 0,
-  todayEarnings: 0,
-  totalJourneys: 0,
-  totalParcels: 0,
-  trustScore: 5,
-  successRate: 100,
-  pendingPayout: 0,
+  totalEarnings: 24500,
+  thisMonthEarnings: 8750,
+  thisWeekEarnings: 2400,
+  todayEarnings: 650,
+  totalJourneys: 28,
+  totalParcels: 67,
+  trustScore: 4.8,
+  successRate: 98.5,
+  pendingPayout: 3200,
 };
 
+// Simulated journeys with richer data
 const mockJourneys: Journey[] = [
   {
     id: "1",
@@ -74,7 +75,7 @@ const mockJourneys: Journey[] = [
     destination: "Pune",
     date: "2026-01-28",
     time: "14:00",
-    transportMode: "bus",
+    transportMode: "car",
     availableCapacity: 5,
     usedCapacity: 5,
     parcelsCount: 2,
@@ -93,6 +94,19 @@ const mockJourneys: Journey[] = [
     parcelsCount: 2,
     status: "completed",
     earnings: 1800,
+  },
+  {
+    id: "4",
+    source: "Hyderabad",
+    destination: "Vizag",
+    date: "2026-02-05",
+    time: "08:00",
+    transportMode: "train",
+    availableCapacity: 12,
+    usedCapacity: 0,
+    parcelsCount: 0,
+    status: "upcoming",
+    earnings: 0,
   },
 ];
 
@@ -228,19 +242,22 @@ const TravelerDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
-      {/* Top Navigation */}
-      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
+      {/* Premium Top Navigation */}
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/30">
         <div className="container-wide">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div 
-              className="flex items-center gap-2 cursor-pointer"
+              className="flex items-center gap-3 cursor-pointer"
               onClick={() => navigate("/")}
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-gold flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">स</span>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+                <span className="text-primary-foreground font-bold text-xl">स</span>
               </div>
-              <span className="font-semibold text-lg text-foreground">SAARTHI</span>
+              <div>
+                <span className="font-bold text-lg text-foreground">SAARTHI</span>
+                <span className="text-xs text-muted-foreground block -mt-1">Traveler</span>
+              </div>
             </div>
 
             {/* Desktop Nav */}
@@ -299,12 +316,12 @@ const TravelerDashboard = () => {
             <div className="flex items-center gap-3">
               <LanguageSelector />
               
-              <Button variant="hero" size="sm" onClick={() => setShowPostForm(true)}>
+              <Button variant="hero" size="sm" className="gap-2 rounded-xl shadow-lg" onClick={() => setShowPostForm(true)}>
                 <Plus className="w-4 h-4" />
                 <span className="hidden sm:inline">{t("nav.postJourney")}</span>
               </Button>
 
-              <Button variant="ghost" size="icon" className="relative">
+              <Button variant="ghost" size="icon" className="relative rounded-xl">
                 <Bell className="w-5 h-5" />
                 <span className="absolute -top-1 -right-1 w-4 h-4 bg-destructive rounded-full text-[10px] text-white flex items-center justify-center">
                   3
@@ -313,9 +330,9 @@ const TravelerDashboard = () => {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="gap-2">
-                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                      <span className="text-sm font-semibold text-primary">{userInitial}</span>
+                  <Button variant="ghost" className="gap-2 rounded-xl">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-md">
+                      <span className="text-sm font-bold text-primary-foreground">{userInitial}</span>
                     </div>
                     <span className="hidden md:inline text-sm">{userName}</span>
                     <ChevronDown className="w-4 h-4 text-muted-foreground" />
