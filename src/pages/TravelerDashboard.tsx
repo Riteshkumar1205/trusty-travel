@@ -13,7 +13,8 @@ import {
   User,
   Shield,
   MapPinned,
-  Sliders
+  Sliders,
+  Wallet
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -29,6 +30,7 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import TravelerStats from "@/components/dashboard/TravelerStats";
 import TravelerStatusCard from "@/components/dashboard/TravelerStatusCard";
 import TravelerPreferences from "@/components/dashboard/TravelerPreferences";
+import EarningsBreakdown from "@/components/dashboard/EarningsBreakdown";
 import JourneyPostForm from "@/components/dashboard/JourneyPostForm";
 import ActiveJourneys, { Journey } from "@/components/dashboard/ActiveJourneys";
 import ParcelManagement, { Parcel } from "@/components/dashboard/ParcelManagement";
@@ -222,6 +224,14 @@ const TravelerDashboard = () => {
                 <Sliders className="w-4 h-4 mr-2" />
                 Preferences
               </Button>
+              <Button 
+                variant={activeTab === "earnings" ? "secondary" : "ghost"} 
+                size="sm"
+                onClick={() => setActiveTab("earnings")}
+              >
+                <Wallet className="w-4 h-4 mr-2" />
+                Earnings
+              </Button>
             </div>
 
             {/* Right Actions */}
@@ -330,6 +340,14 @@ const TravelerDashboard = () => {
                   <Sliders className="w-4 h-4 mr-2" />
                   Preferences
                 </Button>
+                <Button 
+                  variant={activeTab === "earnings" ? "secondary" : "ghost"} 
+                  className="justify-start"
+                  onClick={() => { setActiveTab("earnings"); setMobileMenuOpen(false); }}
+                >
+                  <Wallet className="w-4 h-4 mr-2" />
+                  Earnings
+                </Button>
               </div>
             </div>
           )}
@@ -366,6 +384,7 @@ const TravelerDashboard = () => {
             <TabsTrigger value="parcels">Parcels</TabsTrigger>
             <TabsTrigger value="tracking">Tracking</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
+            <TabsTrigger value="earnings">Earnings</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-8">
@@ -512,6 +531,21 @@ const TravelerDashboard = () => {
                 onSave={(data) => console.log("Preferences saved:", data)}
               />
             </div>
+          </TabsContent>
+
+          <TabsContent value="earnings" className="space-y-6">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">Earnings & Payouts</h2>
+              <p className="text-sm text-muted-foreground">
+                Track your earnings, transaction history, and request payouts
+              </p>
+            </div>
+            <EarningsBreakdown 
+              totalEarnings={mockStats.totalEarnings}
+              thisMonthEarnings={mockStats.thisMonthEarnings}
+              pendingPayout={1850}
+              transactions={[]}
+            />
           </TabsContent>
         </Tabs>
       </main>
