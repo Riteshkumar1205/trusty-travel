@@ -344,6 +344,219 @@
   animation: shake 0.5s ease-in-out;
 }
 
+/* Cinematic Animations */
+@keyframes orb-float-1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.6;
+  }
+  25% {
+    transform: translate(50px, 30px) scale(1.1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(20px, -20px) scale(0.95);
+    opacity: 0.5;
+  }
+  75% {
+    transform: translate(-30px, 10px) scale(1.05);
+    opacity: 0.7;
+  }
+}
+
+@keyframes orb-float-2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+    opacity: 0.5;
+  }
+  33% {
+    transform: translate(-40px, 40px) scale(1.15) rotate(5deg);
+    opacity: 0.7;
+  }
+  66% {
+    transform: translate(30px, -30px) scale(0.9) rotate(-3deg);
+    opacity: 0.4;
+  }
+}
+
+@keyframes orb-float-3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(-60px, -40px) scale(1.2);
+    opacity: 0.6;
+  }
+}
+
+@keyframes scan-vertical {
+  0% {
+    transform: translateX(-100vw);
+  }
+  100% {
+    transform: translateX(200vw);
+  }
+}
+
+@keyframes scan-horizontal {
+  0% {
+    transform: translateY(-100vh);
+  }
+  100% {
+    transform: translateY(200vh);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%) rotate(45deg);
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(100%) rotate(45deg);
+  }
+}
+
+@keyframes aurora-1 {
+  0%, 100% {
+    transform: skewY(-3deg) translateX(-30%) scaleX(0.8);
+    opacity: 0.15;
+  }
+  50% {
+    transform: skewY(-3deg) translateX(30%) scaleX(1.2);
+    opacity: 0.25;
+  }
+}
+
+@keyframes aurora-2 {
+  0%, 100% {
+    transform: skewY(2deg) translateX(20%) scaleX(1.1);
+    opacity: 0.1;
+  }
+  50% {
+    transform: skewY(2deg) translateX(-40%) scaleX(0.9);
+    opacity: 0.2;
+  }
+}
+
+@keyframes dust {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-100vh) translateX(50px);
+    opacity: 0;
+  }
+}
+
+@keyframes lens-flare {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    opacity: 0.25;
+    transform: scale(1.1) rotate(5deg);
+  }
+  50% {
+    opacity: 0.1;
+    transform: scale(0.95) rotate(-3deg);
+  }
+  75% {
+    opacity: 0.2;
+    transform: scale(1.05) rotate(2deg);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.3), 0 0 40px hsl(var(--primary) / 0.1);
+  }
+  50% {
+    box-shadow: 0 0 40px hsl(var(--primary) / 0.5), 0 0 80px hsl(var(--primary) / 0.2);
+  }
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.02);
+    opacity: 1;
+  }
+}
+
+.animate-orb-float-1 {
+  animation: orb-float-1 25s ease-in-out infinite;
+}
+
+.animate-orb-float-2 {
+  animation: orb-float-2 30s ease-in-out infinite;
+}
+
+.animate-orb-float-3 {
+  animation: orb-float-3 20s ease-in-out infinite;
+}
+
+.animate-scan-vertical {
+  animation: scan-vertical 15s linear infinite;
+}
+
+.animate-scan-horizontal {
+  animation: scan-horizontal 20s linear infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 8s ease-in-out infinite;
+}
+
+.animate-aurora-1 {
+  animation: aurora-1 15s ease-in-out infinite;
+}
+
+.animate-aurora-2 {
+  animation: aurora-2 18s ease-in-out infinite;
+}
+
+.animate-dust {
+  animation: dust 20s linear infinite;
+}
+
+.animate-lens-flare {
+  animation: lens-flare 12s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}
+
+/* Gradient utilities */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+.bg-radial-vignette {
+  background: radial-gradient(ellipse at center, transparent 0%, transparent 50%, hsl(216 39% 5% / 0.4) 100%);
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
