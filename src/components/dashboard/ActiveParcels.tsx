@@ -201,23 +201,23 @@ const ActiveParcels = ({ parcels: propParcels, isLoading: propLoading }: ActiveP
                   </div>
                 )}
 
-                {/* OTP Section - only show if matched */}
-                {parcel.traveler && parcel.pickupOtp && parcel.deliveryOtp && (
+                {/* OTP Verification Section - only show if matched with delivery */}
+                {parcel.traveler && parcel.deliveryId && (
                   <div className="grid grid-cols-2 gap-3">
                     <button 
                       className="p-3 rounded-xl bg-success/10 border border-success/30 text-center hover:bg-success/20 transition-colors cursor-pointer"
                       onClick={() => setOtpModal({ open: true, type: "pickup", parcelId: parcel.id })}
                     >
-                      <p className="text-xs text-muted-foreground mb-1">Pickup OTP</p>
-                      <p className="text-xl font-mono font-bold text-success">{parcel.pickupOtp}</p>
+                      <p className="text-xs text-muted-foreground mb-1">Pickup Verification</p>
+                      <p className="text-sm font-medium text-success">Enter OTP from sender</p>
                       <p className="text-xs text-success mt-1">Tap to verify</p>
                     </button>
                     <button 
                       className="p-3 rounded-xl bg-accent/10 border border-accent/30 text-center hover:bg-accent/20 transition-colors cursor-pointer"
                       onClick={() => setOtpModal({ open: true, type: "delivery", parcelId: parcel.id })}
                     >
-                      <p className="text-xs text-muted-foreground mb-1">Delivery OTP</p>
-                      <p className="text-xl font-mono font-bold text-accent">{parcel.deliveryOtp}</p>
+                      <p className="text-xs text-muted-foreground mb-1">Delivery Verification</p>
+                      <p className="text-sm font-medium text-accent">Enter OTP from receiver</p>
                       <p className="text-xs text-accent mt-1">Tap to verify</p>
                     </button>
                   </div>
@@ -302,13 +302,13 @@ const ActiveParcels = ({ parcels: propParcels, isLoading: propLoading }: ActiveP
       </CardContent>
 
       {/* OTP Verification Modal */}
-      {otpModal && activeParcel && activeParcel.traveler && (
+      {otpModal && activeParcel && activeParcel.traveler && activeParcel.deliveryId && (
         <OTPVerificationModal
           open={otpModal.open}
           onOpenChange={(open) => !open && setOtpModal(null)}
           type={otpModal.type}
           parcelTitle={activeParcel.title}
-          expectedOTP={otpModal.type === "pickup" ? (activeParcel.pickupOtp || "") : (activeParcel.deliveryOtp || "")}
+          deliveryId={activeParcel.deliveryId}
           travelerName={activeParcel.traveler.name}
           onVerified={() => {
             console.log(`${otpModal.type} verified for parcel ${otpModal.parcelId}`);

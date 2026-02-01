@@ -16,6 +16,7 @@ export interface SenderStats {
 
 export interface SenderParcel {
   id: string;
+  deliveryId?: string;
   title: string;
   description?: string;
   status: "pending" | "matched" | "picked-up" | "in-transit" | "delivered";
@@ -33,8 +34,6 @@ export interface SenderParcel {
   eta?: string;
   weight: number;
   price?: number;
-  pickupOtp?: string;
-  deliveryOtp?: string;
   timeline: Array<{
     status: string;
     time: string;
@@ -269,6 +268,7 @@ export function useSenderData() {
         
         return {
           id: p.id,
+          deliveryId: delivery?.id,
           title: p.title,
           description: p.description,
           status,
@@ -286,8 +286,6 @@ export function useSenderData() {
           eta: delivery?.journey ? calculateETA(delivery.journey) : undefined,
           weight: p.weight,
           price: delivery?.agreed_price || p.budget,
-          pickupOtp: delivery?.pickup_otp,
-          deliveryOtp: delivery?.delivery_otp,
           timeline: buildTimeline(delivery, p),
           createdAt: p.created_at,
         };

@@ -128,15 +128,20 @@ const PhotoProofUpload = ({
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
+      // Create a signed URL (valid for 1 year) instead of public URL
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from('delivery-proofs')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 31536000); // 1 year in seconds
+
+      if (signedUrlError) throw signedUrlError;
+
+      const photoUrl = signedUrlData.signedUrl;
 
       // Update delivery record with photo URL
       const updateData = type === "pickup" 
-        ? { pickup_photo_url: publicUrl }
+        ? { pickup_photo_url: photoUrl }
         : { 
-            delivery_photo_url: publicUrl,
+            delivery_photo_url: photoUrl,
             recipient_name: recipientInfo.name,
             recipient_phone: recipientInfo.phone
           };
@@ -150,10 +155,10 @@ const PhotoProofUpload = ({
 
       toast({
         title: type === "pickup" ? "Pickup verified!" : "Delivery completed!",
-        description: "Photo proof uploaded successfully",
+        description: "Photo proof uploaded securely",
       });
 
-      onSuccess?.(publicUrl);
+      onSuccess?.(photoUrl);
     } catch (error: any) {
       console.error("Upload error:", error);
       toast({
