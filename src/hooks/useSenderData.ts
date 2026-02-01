@@ -114,40 +114,48 @@ export function useSenderData() {
     return data || [];
   };
 
-  // Fetch available travelers for matching
+  // Fetch available travelers for matching (uses public views to hide sensitive data)
   const fetchAvailableTravelers = async () => {
     const now = new Date();
-    const { data, error } = await supabase
-      .from("journeys")
-      .select(`
-        *,
-        profile:profiles!journeys_user_id_fkey(*)
-      `)
+    // First fetch journeys from public view
+    const { data: journeysData, error: journeysError } = await supabase
+      .from("journeys_public" as "journeys")
+      .select("*")
       .gte("departure_date", now.toISOString().split("T")[0])
       .gt("available_capacity", 0)
       .order("departure_date", { ascending: true })
       .limit(20);
 
-    if (error) {
-      console.error("Error fetching travelers:", error);
+    if (journeysError) {
+      console.error("Error fetching travelers:", journeysError);
       return [];
     }
 
-    return (data || []).map((j) => ({
-      id: j.profile?.user_id || j.user_id,
-      journeyId: j.id,
-      name: j.profile?.full_name || "Traveler",
-      avatar: (j.profile?.full_name || "T").substring(0, 2).toUpperCase(),
-      trustScore: (j.profile?.trust_score || 50) / 10,
-      verified: j.profile?.verification_status === "verified",
-      route: { from: j.source_city, to: j.destination_city },
-      date: j.departure_date,
-      time: j.departure_time,
-      transportMode: j.transport_mode,
-      availableCapacity: j.available_capacity,
-      pricePerKg: j.price_per_kg,
-      acceptedParcelTypes: j.accepted_parcel_types || [],
-    }));
+    // Fetch profiles from public view
+    const userIds = [...new Set((journeysData || []).map((j) => j.user_id))];
+    const { data: profilesData } = await supabase
+      .from("profiles_public" as "profiles")
+      .select("*")
+      .in("user_id", userIds);
+
+    return (journeysData || []).map((j) => {
+      const profile = profilesData?.find((p) => p.user_id === j.user_id);
+      return {
+        id: profile?.user_id || j.user_id,
+        journeyId: j.id,
+        name: profile?.full_name || "Traveler",
+        avatar: (profile?.full_name || "T").substring(0, 2).toUpperCase(),
+        trustScore: (profile?.trust_score || 50) / 10,
+        verified: profile?.verification_status === "verified",
+        route: { from: j.source_city, to: j.destination_city },
+        date: j.departure_date,
+        time: j.departure_time,
+        transportMode: j.transport_mode,
+        availableCapacity: j.available_capacity,
+        pricePerKg: j.price_per_kg,
+        acceptedParcelTypes: j.accepted_parcel_types || [],
+      };
+    });
   };
 
   // Calculate progress based on status

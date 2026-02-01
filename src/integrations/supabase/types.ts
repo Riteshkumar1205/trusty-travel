@@ -87,10 +87,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "deliveries_journey_id_fkey"
+            columns: ["journey_id"]
+            isOneToOne: false
+            referencedRelation: "journeys_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "deliveries_parcel_id_fkey"
             columns: ["parcel_id"]
             isOneToOne: false
             referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels_public"
             referencedColumns: ["id"]
           },
           {
@@ -101,10 +115,24 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
           {
+            foreignKeyName: "deliveries_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "deliveries_traveler_id_fkey"
             columns: ["traveler_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "deliveries_traveler_id_fkey"
+            columns: ["traveler_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
             referencedColumns: ["user_id"]
           },
         ]
@@ -237,6 +265,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "journeys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       messages: {
@@ -355,6 +390,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "parcels_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       profiles: {
@@ -401,7 +443,228 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      journeys_public: {
+        Row: {
+          accepted_parcel_types: string[] | null
+          arrival_date: string | null
+          arrival_time: string | null
+          available_capacity: number | null
+          created_at: string | null
+          current_lat: number | null
+          current_lng: number | null
+          departure_date: string | null
+          departure_time: string | null
+          destination_city: string | null
+          destination_location: string | null
+          id: string | null
+          max_parcel_weight: number | null
+          notes: string | null
+          pnr_number: string | null
+          price_per_kg: number | null
+          source_city: string | null
+          source_location: string | null
+          status: string | null
+          total_capacity: number | null
+          transport_mode: string | null
+          updated_at: string | null
+          user_id: string | null
+          vehicle_number: string | null
+        }
+        Insert: {
+          accepted_parcel_types?: string[] | null
+          arrival_date?: string | null
+          arrival_time?: string | null
+          available_capacity?: number | null
+          created_at?: string | null
+          current_lat?: number | null
+          current_lng?: number | null
+          departure_date?: string | null
+          departure_time?: string | null
+          destination_city?: string | null
+          destination_location?: string | null
+          id?: string | null
+          max_parcel_weight?: number | null
+          notes?: string | null
+          pnr_number?: never
+          price_per_kg?: number | null
+          source_city?: string | null
+          source_location?: string | null
+          status?: string | null
+          total_capacity?: number | null
+          transport_mode?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_number?: never
+        }
+        Update: {
+          accepted_parcel_types?: string[] | null
+          arrival_date?: string | null
+          arrival_time?: string | null
+          available_capacity?: number | null
+          created_at?: string | null
+          current_lat?: number | null
+          current_lng?: number | null
+          departure_date?: string | null
+          departure_time?: string | null
+          destination_city?: string | null
+          destination_location?: string | null
+          id?: string | null
+          max_parcel_weight?: number | null
+          notes?: string | null
+          pnr_number?: never
+          price_per_kg?: number | null
+          source_city?: string | null
+          source_location?: string | null
+          status?: string | null
+          total_capacity?: number | null
+          transport_mode?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          vehicle_number?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journeys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "journeys_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      parcels_public: {
+        Row: {
+          budget: number | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          dimensions: string | null
+          drop_city: string | null
+          drop_contact: string | null
+          drop_location: string | null
+          id: string | null
+          pickup_city: string | null
+          pickup_contact: string | null
+          pickup_location: string | null
+          preferred_modes: string[] | null
+          status: string | null
+          title: string | null
+          updated_at: string | null
+          urgency: string | null
+          urgent_delivery: boolean | null
+          user_id: string | null
+          weight: number | null
+        }
+        Insert: {
+          budget?: number | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          dimensions?: string | null
+          drop_city?: string | null
+          drop_contact?: never
+          drop_location?: string | null
+          id?: string | null
+          pickup_city?: string | null
+          pickup_contact?: never
+          pickup_location?: string | null
+          preferred_modes?: string[] | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+          urgent_delivery?: boolean | null
+          user_id?: string | null
+          weight?: number | null
+        }
+        Update: {
+          budget?: number | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          dimensions?: string | null
+          drop_city?: string | null
+          drop_contact?: never
+          drop_location?: string | null
+          id?: string | null
+          pickup_city?: string | null
+          pickup_contact?: never
+          pickup_location?: string | null
+          preferred_modes?: string[] | null
+          status?: string | null
+          title?: string | null
+          updated_at?: string | null
+          urgency?: string | null
+          urgent_delivery?: boolean | null
+          user_id?: string | null
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcels_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "parcels_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_public"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      profiles_public: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          phone: string | null
+          successful_deliveries: number | null
+          total_deliveries: number | null
+          trust_score: number | null
+          updated_at: string | null
+          user_id: string | null
+          verification_status: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          phone?: never
+          successful_deliveries?: number | null
+          total_deliveries?: number | null
+          trust_score?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_status?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          phone?: never
+          successful_deliveries?: number | null
+          total_deliveries?: number | null
+          trust_score?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+          verification_status?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_traveler_display_name: {
@@ -416,12 +679,24 @@ export type Database = {
         Args: { traveler_user_id: string }
         Returns: string
       }
+      has_delivery_with_user: {
+        Args: { other_user_id: string }
+        Returns: boolean
+      }
       is_delivery_participant: {
         Args: { delivery_id: string }
         Returns: boolean
       }
       is_journey_owner: { Args: { journey_id: string }; Returns: boolean }
+      is_journey_owner_check: {
+        Args: { journey_user_id: string }
+        Returns: boolean
+      }
       is_parcel_owner: { Args: { parcel_id: string }; Returns: boolean }
+      is_parcel_owner_check: {
+        Args: { parcel_user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
