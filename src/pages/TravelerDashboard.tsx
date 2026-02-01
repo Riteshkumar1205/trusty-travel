@@ -38,6 +38,8 @@ import ParcelManagement, { Parcel } from "@/components/dashboard/ParcelManagemen
 import LiveTrackingMap from "@/components/dashboard/LiveTrackingMap";
 import LanguageSelector from "@/components/LanguageSelector";
 import BottomNav from "@/components/layout/BottomNav";
+import ParticleBackground from "@/components/ParticleBackground";
+import CinematicAmbience from "@/components/CinematicAmbience";
 import { useAuth } from "@/hooks/useAuth";
 import { useTravelerData } from "@/hooks/useTravelerData";
 
@@ -241,7 +243,10 @@ const TravelerDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
+    <div className="min-h-screen bg-background pb-20 md:pb-0 relative">
+      <ParticleBackground />
+      <CinematicAmbience />
+      
       {/* Premium Top Navigation */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/30">
         <div className="container-wide">

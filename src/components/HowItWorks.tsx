@@ -1,4 +1,5 @@
 import { CheckCircle2, ArrowRight } from "lucide-react";
+import AnimatedSection from "@/components/AnimatedSection";
 
 const steps = [
   {
@@ -43,14 +44,14 @@ const HowItWorks = () => {
   return (
     <section className="section-padding relative z-10 bg-gradient-to-b from-transparent via-card/30 to-transparent">
       <div className="container-wide">
-        <div className="text-center mb-16">
+        <AnimatedSection animation="fade-up" className="text-center mb-16">
           <h2 className="text-display text-foreground mb-4">
             The Journey of <span className="text-primary">Trust</span>
           </h2>
           <p className="text-body-large max-w-2xl mx-auto">
             From handshake to delivery — every step is verified, tracked, and protected.
           </p>
-        </div>
+        </AnimatedSection>
 
         {/* Timeline */}
         <div className="relative max-w-4xl mx-auto">
@@ -59,49 +60,57 @@ const HowItWorks = () => {
 
           <div className="space-y-8 md:space-y-12">
             {steps.map((step, index) => (
-              <div
+              <AnimatedSection
                 key={step.number}
-                className={`relative flex flex-col md:flex-row items-center gap-4 md:gap-8 ${
-                  index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
-                }`}
+                animation={index % 2 === 0 ? "fade-right" : "fade-left"}
+                delay={index * 150}
+                threshold={0.2}
               >
-                {/* Content */}
                 <div
-                  className={`flex-1 ${
-                    index % 2 === 0 ? "md:text-right" : "md:text-left"
+                  className={`relative flex flex-col md:flex-row items-center gap-4 md:gap-8 ${
+                    index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
                   }`}
                 >
-                  <div className="card-glass p-6 inline-block">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="font-mono text-primary text-sm">{step.number}</span>
-                      <h3 className="font-semibold text-foreground">{step.title}</h3>
+                  {/* Content */}
+                  <div
+                    className={`flex-1 ${
+                      index % 2 === 0 ? "md:text-right" : "md:text-left"
+                    }`}
+                  >
+                    <div className="card-glass p-6 inline-block">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="font-mono text-primary text-sm">{step.number}</span>
+                        <h3 className="font-semibold text-foreground">{step.title}</h3>
+                      </div>
+                      <p className="text-muted-foreground text-sm max-w-xs">
+                        {step.description}
+                      </p>
                     </div>
-                    <p className="text-muted-foreground text-sm max-w-xs">
-                      {step.description}
-                    </p>
                   </div>
-                </div>
 
-                {/* Center dot */}
-                <div className="relative z-10 flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full bg-card border-2 border-primary flex items-center justify-center pulse-trust">
-                    <CheckCircle2 className="w-5 h-5 text-primary" />
+                  {/* Center dot */}
+                  <div className="relative z-10 flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-card border-2 border-primary flex items-center justify-center pulse-trust">
+                      <CheckCircle2 className="w-5 h-5 text-primary" />
+                    </div>
                   </div>
-                </div>
 
-                {/* Empty space for alternating layout */}
-                <div className="flex-1 hidden md:block" />
-              </div>
+                  {/* Empty space for alternating layout */}
+                  <div className="flex-1 hidden md:block" />
+                </div>
+              </AnimatedSection>
             ))}
           </div>
 
           {/* Final arrow */}
-          <div className="flex justify-center mt-12">
-            <div className="flex items-center gap-2 text-primary">
-              <span className="text-sm font-medium">Trust Delivered</span>
-              <ArrowRight className="w-4 h-4" />
+          <AnimatedSection animation="zoom-in" delay={1000}>
+            <div className="flex justify-center mt-12">
+              <div className="flex items-center gap-2 text-primary">
+                <span className="text-sm font-medium">Trust Delivered</span>
+                <ArrowRight className="w-4 h-4" />
+              </div>
             </div>
-          </div>
+          </AnimatedSection>
         </div>
       </div>
     </section>
