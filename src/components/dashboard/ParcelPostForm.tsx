@@ -4,10 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Package, MapPin, Phone, Scale, Zap, Shield, AlertTriangle, Sparkles } from "lucide-react";
+import { Package, MapPin, Phone, Scale, Zap, Shield, AlertTriangle, Sparkles, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const categories = [
   { value: "general", label: "General Items", icon: "📦" },
@@ -26,8 +25,13 @@ const transportModes = [
   { value: "truck", label: "Truck", icon: "🚛" },
 ];
 
-const ParcelPostForm = () => {
+interface ParcelPostFormProps {
+  onSuccess?: () => void;
+}
+
+const ParcelPostForm = ({ onSuccess }: ParcelPostFormProps) => {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -56,12 +60,90 @@ const ParcelPostForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // TODO: Submit to Supabase when authenticated
-    toast({
-      title: "Parcel Posted! 📦",
-      description: "Your parcel is now visible to verified Saarthis on compatible routes.",
-    });
+    setIsSubmitting(true);
+
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Login Required",
+          description: "Please login to post your parcel",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Validate required fields
+      if (!formData.title || !formData.pickupCity || !formData.pickupLocation || 
+          !formData.pickupContact || !formData.dropCity || !formData.dropLocation || 
+          !formData.dropContact || !formData.weight) {
+        toast({
+          title: "Missing Fields",
+          description: "Please fill all required fields",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Insert parcel into database
+      const { error } = await supabase.from("parcels").insert({
+        user_id: user.id,
+        title: formData.title,
+        description: formData.description || null,
+        pickup_city: formData.pickupCity,
+        pickup_location: formData.pickupLocation,
+        pickup_contact: formData.pickupContact,
+        drop_city: formData.dropCity,
+        drop_location: formData.dropLocation,
+        drop_contact: formData.dropContact,
+        weight: parseFloat(formData.weight),
+        dimensions: formData.dimensions || null,
+        category: formData.category,
+        urgency: formData.urgency,
+        preferred_modes: formData.preferredModes,
+        budget: formData.budget ? parseFloat(formData.budget) : null,
+        urgent_delivery: formData.urgency !== "normal",
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Parcel Posted! 📦",
+        description: "Your parcel is now visible to verified Saarthis on compatible routes.",
+      });
+
+      // Reset form
+      setFormData({
+        title: "",
+        description: "",
+        pickupCity: "",
+        pickupLocation: "",
+        pickupContact: "",
+        dropCity: "",
+        dropLocation: "",
+        dropContact: "",
+        weight: "",
+        dimensions: "",
+        category: "general",
+        urgency: "normal",
+        preferredModes: ["train", "flight", "car"],
+        budget: "",
+      });
+
+      onSuccess?.();
+    } catch (error: any) {
+      console.error("Error posting parcel:", error);
+      toast({
+        title: "Failed to post parcel",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -90,7 +172,7 @@ const ParcelPostForm = () => {
             
             <div className="grid gap-4">
               <div>
-                <Label htmlFor="title">Parcel Title</Label>
+                <Label htmlFor="title">Parcel Title *</Label>
                 <Input
                   id="title"
                   placeholder="e.g., Birthday Gift for Mom"
@@ -115,7 +197,7 @@ const ParcelPostForm = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label htmlFor="weight">Weight (kg)</Label>
+                  <Label htmlFor="weight">Weight (kg) *</Label>
                   <div className="relative">
                     <Scale className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
@@ -175,7 +257,7 @@ const ParcelPostForm = () => {
               </h3>
               
               <div>
-                <Label htmlFor="pickupCity">City</Label>
+                <Label htmlFor="pickupCity">City *</Label>
                 <Input
                   id="pickupCity"
                   placeholder="Delhi"
@@ -187,7 +269,7 @@ const ParcelPostForm = () => {
               </div>
 
               <div>
-                <Label htmlFor="pickupLocation">Full Address</Label>
+                <Label htmlFor="pickupLocation">Full Address *</Label>
                 <Input
                   id="pickupLocation"
                   placeholder="Sector 15, Dwarka"
@@ -199,7 +281,7 @@ const ParcelPostForm = () => {
               </div>
 
               <div>
-                <Label htmlFor="pickupContact">Contact Number</Label>
+                <Label htmlFor="pickupContact">Contact Number *</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -221,7 +303,7 @@ const ParcelPostForm = () => {
               </h3>
               
               <div>
-                <Label htmlFor="dropCity">City</Label>
+                <Label htmlFor="dropCity">City *</Label>
                 <Input
                   id="dropCity"
                   placeholder="Mumbai"
@@ -233,7 +315,7 @@ const ParcelPostForm = () => {
               </div>
 
               <div>
-                <Label htmlFor="dropLocation">Full Address</Label>
+                <Label htmlFor="dropLocation">Full Address *</Label>
                 <Input
                   id="dropLocation"
                   placeholder="Andheri West, Near Metro"
@@ -245,7 +327,7 @@ const ParcelPostForm = () => {
               </div>
 
               <div>
-                <Label htmlFor="dropContact">Contact Number</Label>
+                <Label htmlFor="dropContact">Contact Number *</Label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -352,9 +434,22 @@ const ParcelPostForm = () => {
             </div>
           </div>
 
-          <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-            <Sparkles className="h-4 w-4 mr-2" />
-            Find My Saarthi
+          <Button 
+            type="submit" 
+            className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Posting...
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 mr-2" />
+                Find My Saarthi
+              </>
+            )}
           </Button>
 
           <p className="text-center text-xs text-muted-foreground">
