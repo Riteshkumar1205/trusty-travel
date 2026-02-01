@@ -201,9 +201,9 @@ const TravelersListing = () => {
     try {
       setLoading(true);
       
-      // Fetch upcoming journeys
+      // Fetch upcoming journeys using public view (hides sensitive data)
       const { data: journeysData, error: journeysError } = await supabase
-        .from("journeys")
+        .from("journeys_public" as "journeys")
         .select("*")
         .gte("departure_date", new Date().toISOString().split("T")[0])
         .eq("status", "upcoming")
@@ -211,21 +211,21 @@ const TravelersListing = () => {
 
       if (journeysError) throw journeysError;
 
-      // Fetch profiles for all journey owners
+      // Fetch profiles using public view (hides phone for non-related users)
       if (journeysData && journeysData.length > 0) {
-        const userIds = [...new Set(journeysData.map(j => j.user_id))];
+        const userIds = [...new Set(journeysData.map((j) => j.user_id))];
         
         const { data: profilesData, error: profilesError } = await supabase
-          .from("profiles")
+          .from("profiles_public" as "profiles")
           .select("*")
           .in("user_id", userIds);
 
         if (profilesError) throw profilesError;
 
         // Map profiles to journeys
-        const journeysWithProfiles = journeysData.map(journey => ({
+        const journeysWithProfiles = journeysData.map((journey) => ({
           ...journey,
-          profile: profilesData?.find(p => p.user_id === journey.user_id),
+          profile: profilesData?.find((p) => p.user_id === journey.user_id),
         }));
 
         // Combine real journeys with simulated ones
