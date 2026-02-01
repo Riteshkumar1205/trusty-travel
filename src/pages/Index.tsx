@@ -1,4 +1,5 @@
 import ParticleBackground from "@/components/ParticleBackground";
+import CinematicAmbience from "@/components/CinematicAmbience";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import FeatureGrid from "@/components/FeatureGrid";
@@ -12,6 +13,7 @@ const Index = () => {
     <div className="min-h-screen bg-background relative pb-20 md:pb-0">
       {/* Animated Background */}
       <ParticleBackground />
+      <CinematicAmbience />
       
       {/* Navigation */}
       <Navbar />
