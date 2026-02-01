@@ -1,4 +1,5 @@
 import { Package, Users, Shield, MapPin, Clock, Wallet } from "lucide-react";
+import AnimatedSection from "@/components/AnimatedSection";
 
 const features = [
   {
@@ -43,37 +44,41 @@ const FeatureGrid = () => {
   return (
     <section className="section-padding relative z-10">
       <div className="container-wide">
-        <div className="text-center mb-16">
+        <AnimatedSection animation="fade-up" className="text-center mb-16">
           <h2 className="text-display text-foreground mb-4">
             Why Choose <span className="text-primary">SAARTHI</span>?
           </h2>
           <p className="text-body-large max-w-2xl mx-auto">
             A people-powered logistics network built on trust, transparency, and responsibility.
           </p>
-        </div>
+        </AnimatedSection>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
-            <div
+            <AnimatedSection
               key={feature.title}
-              className="card-premium p-6 group hover:border-primary/30 transition-all duration-500"
-              style={{ animationDelay: `${index * 100}ms` }}
+              animation={index % 2 === 0 ? "fade-left" : "fade-right"}
+              delay={index * 100}
             >
-              <div className="flex items-start gap-4">
-                <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-                  <feature.icon className="w-6 h-6" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold text-foreground">{feature.title}</h3>
-                    <span className="badge-verified text-xs">{feature.badge}</span>
+              <div
+                className="card-premium p-6 group hover:border-primary/30 transition-all duration-500 h-full"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="p-3 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                    <feature.icon className="w-6 h-6" />
                   </div>
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    {feature.description}
-                  </p>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="font-semibold text-foreground">{feature.title}</h3>
+                      <span className="badge-verified text-xs">{feature.badge}</span>
+                    </div>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </AnimatedSection>
           ))}
         </div>
       </div>

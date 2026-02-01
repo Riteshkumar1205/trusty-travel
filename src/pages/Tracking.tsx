@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Navigation, Package, Train, Bus, Plane } from "lucide-react";
 import { Link } from "react-router-dom";
 import ParticleBackground from "@/components/ParticleBackground";
+import CinematicAmbience from "@/components/CinematicAmbience";
 import RealTimeMap from "@/components/tracking/RealTimeMap";
 import ExternalTrackingHub from "@/components/tracking/ExternalTrackingHub";
 import LanguageSelector from "@/components/LanguageSelector";
@@ -15,6 +16,7 @@ const Tracking = () => {
   return (
     <div className="min-h-screen relative pb-20 md:pb-0">
       <ParticleBackground />
+      <CinematicAmbience />
       
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-xl bg-background/80 border-b border-border/50">
