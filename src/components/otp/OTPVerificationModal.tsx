@@ -14,13 +14,14 @@ import {
   MapPin, Shield, RefreshCw 
 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OTPVerificationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   type: "pickup" | "delivery";
   parcelTitle: string;
-  expectedOTP: string;
+  deliveryId: string;
   onVerified: () => void;
   travelerName?: string;
 }
@@ -30,7 +31,7 @@ const OTPVerificationModal = ({
   onOpenChange,
   type,
   parcelTitle,
-  expectedOTP,
+  deliveryId,
   onVerified,
   travelerName = "Traveler",
 }: OTPVerificationModalProps) => {
@@ -91,25 +92,44 @@ const OTPVerificationModal = ({
 
   const verifyOTP = async (enteredOTP: string) => {
     setIsVerifying(true);
+    setError(false);
     
-    // Simulate API verification delay
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    
-    if (enteredOTP === expectedOTP) {
-      setIsVerified(true);
-      setIsVerifying(false);
-      toast.success(`${type === "pickup" ? "Pickup" : "Delivery"} verified successfully!`);
-      setTimeout(() => {
-        onVerified();
-        onOpenChange(false);
-      }, 1500);
-    } else {
+    try {
+      // Call the Edge Function for server-side verification
+      const { data, error: fnError } = await supabase.functions.invoke('verify-otp', {
+        body: { 
+          deliveryId, 
+          otpType: type, 
+          enteredOtp: enteredOTP 
+        }
+      });
+
+      if (fnError) {
+        throw new Error(fnError.message || 'Verification failed');
+      }
+
+      if (data?.verified) {
+        setIsVerified(true);
+        toast.success(`${type === "pickup" ? "Pickup" : "Delivery"} verified successfully!`);
+        setTimeout(() => {
+          onVerified();
+          onOpenChange(false);
+        }, 1500);
+      } else {
+        setError(true);
+        setAttempts((prev) => prev + 1);
+        toast.error(data?.message || "Invalid OTP. Please try again.");
+        setOtp(["", "", "", ""]);
+        inputRefs.current[0]?.focus();
+      }
+    } catch (err: any) {
+      console.error('OTP verification error:', err);
       setError(true);
-      setIsVerifying(false);
-      setAttempts((prev) => prev + 1);
-      toast.error("Invalid OTP. Please try again.");
+      toast.error(err.message || "Verification failed. Please try again.");
       setOtp(["", "", "", ""]);
       inputRefs.current[0]?.focus();
+    } finally {
+      setIsVerifying(false);
     }
   };
 
