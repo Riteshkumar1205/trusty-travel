@@ -139,19 +139,9 @@ const Auth = () => {
         variant: "destructive",
       });
     } else if (data.user) {
-      // Create profile
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .insert({
-          user_id: data.user.id,
-          full_name: signupData.fullName,
-          phone: signupData.phone,
-        });
-
-      if (profileError) {
-        console.error("Profile creation error:", profileError);
-      }
-
+      // Profile is created automatically by database trigger (handle_new_user)
+      // No need to create it manually here
+      
       toast({
         title: "Account Created! 🎉",
         description: "Please check your email to verify your account.",
