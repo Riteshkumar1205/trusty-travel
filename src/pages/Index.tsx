@@ -1,5 +1,6 @@
 import ParticleBackground from "@/components/ParticleBackground";
 import CinematicAmbience from "@/components/CinematicAmbience";
+import ScrollProgressBar from "@/components/ScrollProgressBar";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import FeatureGrid from "@/components/FeatureGrid";
@@ -11,6 +12,9 @@ import BottomNav from "@/components/layout/BottomNav";
 const Index = () => {
   return (
     <div className="min-h-screen bg-background relative pb-20 md:pb-0">
+      {/* Scroll Progress */}
+      <ScrollProgressBar />
+
       {/* Animated Background */}
       <ParticleBackground />
       <CinematicAmbience />
