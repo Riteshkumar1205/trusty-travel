@@ -20,12 +20,14 @@ export type Database = {
           created_at: string
           delivered_at: string | null
           delivery_otp: string | null
+          delivery_otp_expires_at: string | null
           delivery_photo_url: string | null
           id: string
           journey_id: string
           parcel_id: string
           pickup_at: string | null
           pickup_otp: string | null
+          pickup_otp_expires_at: string | null
           pickup_photo_url: string | null
           recipient_name: string | null
           recipient_phone: string | null
@@ -41,12 +43,14 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           delivery_otp?: string | null
+          delivery_otp_expires_at?: string | null
           delivery_photo_url?: string | null
           id?: string
           journey_id: string
           parcel_id: string
           pickup_at?: string | null
           pickup_otp?: string | null
+          pickup_otp_expires_at?: string | null
           pickup_photo_url?: string | null
           recipient_name?: string | null
           recipient_phone?: string | null
@@ -62,12 +66,14 @@ export type Database = {
           created_at?: string
           delivered_at?: string | null
           delivery_otp?: string | null
+          delivery_otp_expires_at?: string | null
           delivery_photo_url?: string | null
           id?: string
           journey_id?: string
           parcel_id?: string
           pickup_at?: string | null
           pickup_otp?: string | null
+          pickup_otp_expires_at?: string | null
           pickup_photo_url?: string | null
           recipient_name?: string | null
           recipient_phone?: string | null
@@ -315,6 +321,38 @@ export type Database = {
           },
         ]
       }
+      otp_attempts: {
+        Row: {
+          attempted_at: string
+          delivery_id: string
+          id: string
+          otp_type: string
+          user_id: string
+        }
+        Insert: {
+          attempted_at?: string
+          delivery_id: string
+          id?: string
+          otp_type: string
+          user_id: string
+        }
+        Update: {
+          attempted_at?: string
+          delivery_id?: string
+          id?: string
+          otp_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "otp_attempts_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "deliveries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parcels: {
         Row: {
           budget: number | null
@@ -459,7 +497,6 @@ export type Database = {
           id: string | null
           max_parcel_weight: number | null
           notes: string | null
-          pnr_number: string | null
           price_per_kg: number | null
           source_city: string | null
           source_location: string | null
@@ -468,7 +505,6 @@ export type Database = {
           transport_mode: string | null
           updated_at: string | null
           user_id: string | null
-          vehicle_number: string | null
         }
         Insert: {
           accepted_parcel_types?: string[] | null
@@ -485,7 +521,6 @@ export type Database = {
           id?: string | null
           max_parcel_weight?: number | null
           notes?: string | null
-          pnr_number?: never
           price_per_kg?: number | null
           source_city?: string | null
           source_location?: string | null
@@ -494,7 +529,6 @@ export type Database = {
           transport_mode?: string | null
           updated_at?: string | null
           user_id?: string | null
-          vehicle_number?: never
         }
         Update: {
           accepted_parcel_types?: string[] | null
@@ -511,7 +545,6 @@ export type Database = {
           id?: string | null
           max_parcel_weight?: number | null
           notes?: string | null
-          pnr_number?: never
           price_per_kg?: number | null
           source_city?: string | null
           source_location?: string | null
@@ -520,7 +553,6 @@ export type Database = {
           transport_mode?: string | null
           updated_at?: string | null
           user_id?: string | null
-          vehicle_number?: never
         }
         Relationships: [
           {
@@ -547,11 +579,9 @@ export type Database = {
           description: string | null
           dimensions: string | null
           drop_city: string | null
-          drop_contact: string | null
           drop_location: string | null
           id: string | null
           pickup_city: string | null
-          pickup_contact: string | null
           pickup_location: string | null
           preferred_modes: string[] | null
           status: string | null
@@ -569,11 +599,9 @@ export type Database = {
           description?: string | null
           dimensions?: string | null
           drop_city?: string | null
-          drop_contact?: never
           drop_location?: string | null
           id?: string | null
           pickup_city?: string | null
-          pickup_contact?: never
           pickup_location?: string | null
           preferred_modes?: string[] | null
           status?: string | null
@@ -591,11 +619,9 @@ export type Database = {
           description?: string | null
           dimensions?: string | null
           drop_city?: string | null
-          drop_contact?: never
           drop_location?: string | null
           id?: string | null
           pickup_city?: string | null
-          pickup_contact?: never
           pickup_location?: string | null
           preferred_modes?: string[] | null
           status?: string | null
@@ -629,7 +655,6 @@ export type Database = {
           created_at: string | null
           full_name: string | null
           id: string | null
-          phone: string | null
           successful_deliveries: number | null
           total_deliveries: number | null
           trust_score: number | null
@@ -642,7 +667,6 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id?: string | null
-          phone?: never
           successful_deliveries?: number | null
           total_deliveries?: number | null
           trust_score?: number | null
@@ -655,7 +679,6 @@ export type Database = {
           created_at?: string | null
           full_name?: string | null
           id?: string | null
-          phone?: never
           successful_deliveries?: number | null
           total_deliveries?: number | null
           trust_score?: number | null
