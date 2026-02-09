@@ -146,14 +146,25 @@
     text-shadow: 0 0 20px hsl(207 100% 65% / 0.5);
   }
 
-  /* Card Styles */
+  /* Card Styles with Micro-interactions */
   .card-premium {
-    @apply bg-card rounded-2xl border border-border/50;
+    @apply bg-card rounded-2xl border border-border/50 transition-all duration-500 ease-out;
     box-shadow: var(--shadow-card);
   }
 
+  .card-premium:hover {
+    @apply border-primary/30;
+    box-shadow: var(--shadow-card), 0 0 30px hsl(42 66% 62% / 0.08);
+    transform: translateY(-2px);
+  }
+
   .card-glass {
-    @apply backdrop-blur-xl bg-card/60 rounded-2xl border border-border/30;
+    @apply backdrop-blur-xl bg-card/60 rounded-2xl border border-border/30 transition-all duration-500 ease-out;
+  }
+
+  .card-glass:hover {
+    @apply border-primary/20 bg-card/70;
+    transform: translateY(-2px);
   }
 
   /* Trust Badge Styles */
