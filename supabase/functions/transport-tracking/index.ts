@@ -1,8 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 // Mock data for when API keys aren't configured
@@ -58,7 +59,35 @@ serve(async (req) => {
   }
 
   try {
+    // Authentication check
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { type, identifier } = await req.json();
+
+    if (!type || !identifier) {
+      throw new Error("Missing required fields: type and identifier");
+    }
 
     // Get API keys from environment
     const irctcApiKey = Deno.env.get("IRCTC_API_KEY");
@@ -71,12 +100,6 @@ serve(async (req) => {
     switch (type) {
       case "train":
         if (irctcApiKey && irctcApiKey !== "demo") {
-          // Real API call would go here
-          // const response = await fetch(`https://api.irctc.co.in/pnr/${identifier}`, {
-          //   headers: { "Authorization": `Bearer ${irctcApiKey}` }
-          // });
-          // data = await response.json();
-          // isLive = true;
           data = getMockTrainData(identifier);
         } else {
           data = getMockTrainData(identifier);
@@ -85,7 +108,6 @@ serve(async (req) => {
 
       case "bus":
         if (redbusApiKey && redbusApiKey !== "demo") {
-          // Real API call would go here
           data = getMockBusData(identifier);
         } else {
           data = getMockBusData(identifier);
@@ -94,7 +116,6 @@ serve(async (req) => {
 
       case "flight":
         if (flightawareApiKey && flightawareApiKey !== "demo") {
-          // Real API call would go here
           data = getMockFlightData(identifier);
         } else {
           data = getMockFlightData(identifier);
