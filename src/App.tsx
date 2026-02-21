@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import TunnelWaves from "@/components/TunnelWaves";
 import Index from "./pages/Index";
 import TravelerDashboard from "./pages/TravelerDashboard";
 import SenderDashboard from "./pages/SenderDashboard";
@@ -19,6 +20,7 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <LanguageProvider>
       <TooltipProvider>
+        <TunnelWaves />
         <Toaster />
         <Sonner />
         <BrowserRouter>
