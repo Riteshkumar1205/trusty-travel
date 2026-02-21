@@ -283,7 +283,7 @@ export function useSenderData() {
           traveler: delivery ? {
             name: delivery.traveler?.full_name || "Traveler",
             avatar: (delivery.traveler?.full_name || "T").substring(0, 2).toUpperCase(),
-            phone: delivery.recipient_phone || delivery.traveler?.phone,
+            phone: undefined, // Phone hidden until needed via secure channel
             trustScore: (delivery.traveler?.trust_score || 50) / 10,
             verified: delivery.traveler?.verification_status === "verified",
             userId: delivery.traveler_id,

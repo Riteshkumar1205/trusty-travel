@@ -39,8 +39,23 @@ const ContactModal = ({
   const [isSending, setIsSending] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
 
+  // Sanitize phone number: only allow digits, +, spaces, hyphens, parens
+  const sanitizePhone = (phone: string): string => {
+    return phone.replace(/[^0-9+\s()-]/g, "").trim();
+  };
+
+  const isValidPhone = (phone: string): boolean => {
+    const sanitized = sanitizePhone(phone);
+    return /^\+?[0-9\s()-]{7,15}$/.test(sanitized);
+  };
+
   const handleCall = () => {
-    window.location.href = `tel:${contact.phone.replace(/\s/g, "")}`;
+    if (!isValidPhone(contact.phone)) {
+      toast.error("Invalid phone number format");
+      return;
+    }
+    const sanitized = sanitizePhone(contact.phone).replace(/\s/g, "");
+    window.location.href = `tel:${encodeURIComponent(sanitized)}`;
     toast.success(`Calling ${contact.name}...`);
   };
 
@@ -49,13 +64,18 @@ const ContactModal = ({
   };
 
   const handleCopyNumber = () => {
-    navigator.clipboard.writeText(contact.phone.replace(/\s/g, ""));
+    const sanitized = sanitizePhone(contact.phone).replace(/\s/g, "");
+    navigator.clipboard.writeText(sanitized);
     toast.success("Phone number copied!");
   };
 
   const handleWhatsApp = () => {
-    const phoneNumber = contact.phone.replace(/\s/g, "").replace("+", "");
-    window.open(`https://wa.me/${phoneNumber}`, "_blank");
+    if (!isValidPhone(contact.phone)) {
+      toast.error("Invalid phone number format");
+      return;
+    }
+    const phoneNumber = sanitizePhone(contact.phone).replace(/[^0-9]/g, "");
+    window.open(`https://wa.me/${encodeURIComponent(phoneNumber)}`, "_blank");
   };
 
   const handleSendMessage = async () => {

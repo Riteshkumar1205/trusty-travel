@@ -16,13 +16,22 @@ import { z } from "zod";
 
 const emailSchema = z.string().email("Please enter a valid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
+const fullNameSchema = z.string()
+  .trim()
+  .min(2, "Name must be at least 2 characters")
+  .max(100, "Name must be less than 100 characters")
+  .regex(/^[a-zA-Z\s'.,-]+$/, "Name contains invalid characters");
+const phoneSchema = z.string()
+  .trim()
+  .regex(/^\+?[0-9\s()-]{7,15}$/, "Please enter a valid phone number")
+  .or(z.literal(""));
 
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; fullName?: string; phone?: string }>({});
   
   const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [signupData, setSignupData] = useState({ 
@@ -48,22 +57,23 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const validateFields = (email: string, password: string) => {
-    const newErrors: { email?: string; password?: string } = {};
+  const validateFields = (email: string, password: string, fullName?: string, phone?: string) => {
+    const newErrors: { email?: string; password?: string; fullName?: string; phone?: string } = {};
     
-    try {
-      emailSchema.parse(email);
-    } catch (e) {
-      if (e instanceof z.ZodError) {
-        newErrors.email = e.errors[0].message;
+    try { emailSchema.parse(email); } catch (e) {
+      if (e instanceof z.ZodError) newErrors.email = e.errors[0].message;
+    }
+    try { passwordSchema.parse(password); } catch (e) {
+      if (e instanceof z.ZodError) newErrors.password = e.errors[0].message;
+    }
+    if (fullName !== undefined) {
+      try { fullNameSchema.parse(fullName); } catch (e) {
+        if (e instanceof z.ZodError) newErrors.fullName = e.errors[0].message;
       }
     }
-
-    try {
-      passwordSchema.parse(password);
-    } catch (e) {
-      if (e instanceof z.ZodError) {
-        newErrors.password = e.errors[0].message;
+    if (phone !== undefined && phone !== "") {
+      try { phoneSchema.parse(phone); } catch (e) {
+        if (e instanceof z.ZodError) newErrors.phone = e.errors[0].message;
       }
     }
 
@@ -106,7 +116,7 @@ const Auth = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateFields(signupData.email, signupData.password)) {
+    if (!validateFields(signupData.email, signupData.password, signupData.fullName, signupData.phone)) {
       return;
     }
 
@@ -252,6 +262,9 @@ const Auth = () => {
                       required
                     />
                   </div>
+                  {errors.fullName && (
+                    <p className="text-xs text-destructive">{errors.fullName}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -267,6 +280,9 @@ const Auth = () => {
                       className="pl-10 bg-secondary/50"
                     />
                   </div>
+                  {errors.phone && (
+                    <p className="text-xs text-destructive">{errors.phone}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">

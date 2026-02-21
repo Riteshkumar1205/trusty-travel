@@ -164,8 +164,9 @@ export function useTravelerData() {
           weight: d.parcel.weight,
           price: d.agreed_price,
           status: parcelStatus,
-          pickupOtp: d.pickup_otp || undefined,
-          deliveryOtp: d.delivery_otp || undefined,
+          // OTPs are never exposed client-side for security
+          pickupOtp: undefined,
+          deliveryOtp: undefined,
           confidentiality: d.parcel.category === "documents" ? "high" : "medium",
           insurance: d.parcel.urgent_delivery || false,
           pickupPhotoUrl: d.pickup_photo_url || undefined,
