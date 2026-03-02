@@ -6,32 +6,39 @@ import { memo } from "react";
  * Uses pure CSS animations for maximum performance.
  */
 const TunnelWaves = memo(() => {
-  const rings = Array.from({ length: 6 }, (_, i) => i);
+  const rings = Array.from({ length: 10 }, (_, i) => i);
 
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
       {/* Central vanishing point glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-primary/30 blur-md" />
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full blur-lg"
+        style={{ background: 'hsl(var(--primary) / 0.25)' }}
+      />
 
-      {/* Expanding rings */}
-      {rings.map((i) => (
-        <div
-          key={i}
-          className="absolute top-1/2 left-1/2 rounded-full border tunnel-ring"
-          style={{
-            animationDelay: `${i * -1.2}s`,
-            borderColor: i % 2 === 0
-              ? 'hsl(var(--primary) / 0.12)'
-              : 'hsl(var(--accent) / 0.08)',
-          }}
-        />
-      ))}
+      {/* Expanding rings — staggered across a longer cycle */}
+      {rings.map((i) => {
+        const isGold = i % 3 !== 2;
+        return (
+          <div
+            key={i}
+            className="absolute top-1/2 left-1/2 rounded-full border tunnel-ring"
+            style={{
+              animationDelay: `${i * -0.95}s`,
+              borderColor: isGold
+                ? 'hsl(var(--primary) / 0.10)'
+                : 'hsl(var(--accent) / 0.06)',
+            }}
+          />
+        );
+      })}
 
-      {/* Subtle radial gradient overlay for depth */}
+      {/* Depth vignette — fades rings into background at edges */}
       <div
         className="absolute inset-0"
         style={{
-          background: 'radial-gradient(ellipse at center, transparent 0%, transparent 30%, hsl(var(--background) / 0.6) 70%, hsl(var(--background)) 100%)',
+          background:
+            'radial-gradient(ellipse at center, transparent 0%, transparent 25%, hsl(var(--background) / 0.5) 60%, hsl(var(--background) / 0.85) 80%, hsl(var(--background)) 100%)',
         }}
       />
     </div>
